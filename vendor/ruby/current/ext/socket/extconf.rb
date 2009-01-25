@@ -244,7 +244,7 @@ end
 
 $objs = ["socket.#{$OBJEXT}"]
 
-unless getaddr_info_ok and have_func("getnameinfo", "netdb.h") and have_func("getaddrinfo", "netdb.h")
+unless getaddr_info_ok and have_func("getnameinfo", headers) and have_func("getaddrinfo", headers)
   if have_struct_member("struct in6_addr", "s6_addr8", headers)
     $defs[-1] = "-DHAVE_ADDR8"
   end
@@ -254,6 +254,19 @@ unless getaddr_info_ok and have_func("getnameinfo", "netdb.h") and have_func("ge
   have_func("inet_ntop") or have_func("inet_ntoa")
   have_func("inet_pton") or have_func("inet_aton")
   have_func("getservbyport")
+  if have_func("gai_strerror")
+    unless checking_for("gai_strerror() returns const pointer") {!try_compile(<<EOF)}
+#{cpp_include(headers)}
+#include <stdlib.h>
+void
+conftest_gai_strerror_is_const()
+{
+    *gai_strerror(0) = 0;
+}
+EOF
+      $defs << "-DGAI_STRERROR_CONST"
+    end
+  end
   have_header("arpa/nameser.h")
   have_header("resolv.h")
 end

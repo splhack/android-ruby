@@ -360,13 +360,31 @@ translate_char(char *p, int from, int to)
     return p;
 }
 
+#ifndef CSIDL_PROFILE
+#define CSIDL_PROFILE 40
+#endif
+
+static BOOL
+get_special_folder(int n, char *env)
+{
+    LPITEMIDLIST pidl;
+    LPMALLOC alloc;
+    BOOL f = FALSE;
+    if (SHGetSpecialFolderLocation(NULL, n, &pidl) == 0) {
+	f = SHGetPathFromIDList(pidl, env);
+	SHGetMalloc(&alloc);
+	alloc->lpVtbl->Free(alloc, pidl);
+	alloc->lpVtbl->Release(alloc);
+    }
+    return f;
+}
+
 static void
 init_env(void)
 {
     char env[_MAX_PATH];
     DWORD len;
     BOOL f;
-    LPITEMIDLIST pidl;
 
     if (!GetEnvironmentVariable("HOME", env, sizeof(env))) {
 	f = FALSE;
@@ -380,12 +398,11 @@ init_env(void)
 	else if (GetEnvironmentVariable("USERPROFILE", env, sizeof(env))) {
 	    f = TRUE;
 	}
-	else if (SHGetSpecialFolderLocation(NULL, CSIDL_PERSONAL, &pidl) == 0) {
-	    LPMALLOC alloc;
-	    f = SHGetPathFromIDList(pidl, env);
-	    SHGetMalloc(&alloc);
-	    alloc->lpVtbl->Free(alloc, pidl);
-	    alloc->lpVtbl->Release(alloc);
+	else if (get_special_folder(CSIDL_PROFILE, env)) {
+	    f = TRUE;
+	}
+	else if (get_special_folder(CSIDL_PERSONAL, env)) {
+	    f = TRUE;
 	}
 	if (f) {
 	    char *p = translate_char(env, '\\', '/');
@@ -651,10 +668,12 @@ is_command_com(const char *interp)
     return 0;
 }
 
+static int internal_cmd_match(const char *cmdname, int nt);
+
 static int
 is_internal_cmd(const char *cmd, int nt)
 {
-    char cmdname[9], *b = cmdname, c, **nm;
+    char cmdname[9], *b = cmdname, c;
 
     do {
 	if (!(c = *cmd++)) return 0;
@@ -674,6 +693,14 @@ is_internal_cmd(const char *cmd, int nt)
 	return 0;
     }
     *b = 0;
+    return internal_cmd_match(cmdname, nt);
+}
+
+static int
+internal_cmd_match(const char *cmdname, int nt)
+{
+    char **nm;
+
     nm = bsearch(cmdname, szInternalCmds,
 		 sizeof(szInternalCmds) / sizeof(*szInternalCmds),
 		 sizeof(*szInternalCmds),
@@ -689,8 +716,8 @@ rb_w32_get_osfhandle(int fh)
     return _get_osfhandle(fh);
 }
 
-int
-rb_w32_argv_size(char *const *argv)
+static int
+argv_size(char *const *argv, BOOL escape)
 {
     const char *p;
     char *const *t;
@@ -701,6 +728,10 @@ rb_w32_argv_size(char *const *argv)
 	    switch (*p) {
 	      case '\\':
 		++bs;
+		break;
+	      case '<': case '>': case '|': case '^':
+		bs = 0;
+		if (escape && !quote) n++;
 		break;
 	      case '"':
 		n += bs + 1; bs = 0;
@@ -720,8 +751,8 @@ rb_w32_argv_size(char *const *argv)
     return len;
 }
 
-char *
-rb_w32_join_argv(char *cmd, char *const *argv)
+static char *
+join_argv(char *cmd, char *const *argv, BOOL escape)
 {
     const char *p, *s;
     char *q, *const *t;
@@ -743,6 +774,12 @@ rb_w32_join_argv(char *cmd, char *const *argv)
 		memcpy(q, s, n = p - s); q += n; s = p;
 		memset(q, '\\', ++bs); q += bs; bs = 0;
 		break;
+	      case '<': case '>': case '|': case '^':
+		if (escape && !quote) {
+		    memcpy(q, s, n = p - s); q += n; s = p;
+		    *q++ = '^';
+		    break;
+		}
 	      default:
 		bs = 0;
 		p = CharNext(p) - 1;
@@ -973,7 +1010,8 @@ rb_w32_spawn(int mode, const char *cmd, const char *prog)
 rb_pid_t
 rb_w32_aspawn(int mode, const char *prog, char *const *argv)
 {
-    int len, differ = 0, c_switch =0;
+    int len, differ = 0, c_switch = 0;
+    BOOL ntcmd = FALSE, tmpnt;
     const char *shell;
     char *cmd, fbuf[MAXPATHLEN];
 
@@ -981,8 +1019,8 @@ rb_w32_aspawn(int mode, const char *prog, char *const *argv)
 
     if (!prog) prog = argv[0];
     if ((shell = getenv("COMSPEC")) &&
-	(has_redirection(prog) ||
-	 is_internal_cmd(prog, !is_command_com(shell)))) {
+	internal_cmd_match(prog, tmpnt = !is_command_com(shell))) {
+	ntcmd = tmpnt;
 	prog = shell;
 	c_switch = 1;
 	differ = 1;
@@ -1005,18 +1043,18 @@ rb_w32_aspawn(int mode, const char *prog, char *const *argv)
 	char *progs[2];
 	progs[0] = (char *)prog;
 	progs[1] = NULL;
-	len = rb_w32_argv_size(progs);
+	len = argv_size(progs, ntcmd);
 	if (c_switch) len += 3;
-	if (argv[0]) len += rb_w32_argv_size(argv);
+	if (argv[0]) len += argv_size(argv, ntcmd);
 	cmd = ALLOCA_N(char, len);
-	rb_w32_join_argv(cmd, progs);
+	join_argv(cmd, progs, ntcmd);
 	if (c_switch) strlcat(cmd, " /c", len);
-	if (argv[0]) rb_w32_join_argv(cmd + strlcat(cmd, " ", len), argv);
+	if (argv[0]) join_argv(cmd + strlcat(cmd, " ", len), argv, ntcmd);
     }
     else {
-	len = rb_w32_argv_size(argv);
+	len = argv_size(argv, FALSE);
 	cmd = ALLOCA_N(char, len);
-	rb_w32_join_argv(cmd, argv);
+	join_argv(cmd, argv, FALSE);
     }
     return child_result(CreateChild(cmd, prog, NULL, NULL, NULL, NULL), mode);
 }
@@ -1395,13 +1433,44 @@ rb_w32_cmdvector(const char *cmd, char ***vec)
 #define BitOfIsRep(n) ((n) * 2 + 1)
 #define DIRENT_PER_CHAR (CHAR_BIT / 2)
 
+static HANDLE
+open_dir_handle(const char *filename, WIN32_FIND_DATA *fd)
+{
+    HANDLE fh;
+    static const char wildcard[] = "/*";
+    long len = strlen(filename);
+    char *scanname = malloc(len + sizeof(wildcard));
+
+    //
+    // Create the search pattern
+    //
+    if (!scanname) {
+	return INVALID_HANDLE_VALUE;
+    }
+    memcpy(scanname, filename, len + 1);
+
+    if (index("/\\:", *CharPrev(scanname, scanname + len)) == NULL)
+	memcpy(scanname + len, wildcard, sizeof(wildcard));
+    else
+	memcpy(scanname + len, wildcard + 1, sizeof(wildcard) - 1);
+
+    //
+    // do the FindFirstFile call
+    //
+    fh = FindFirstFile(scanname, fd);
+    free(scanname);
+    if (fh == INVALID_HANDLE_VALUE) {
+	errno = map_errno(GetLastError());
+    }
+    return fh;
+}
+
 DIR *
 rb_w32_opendir(const char *filename)
 {
     DIR               *p;
     long               len;
     long               idx;
-    char	      *scanname;
     char	      *tmp;
     struct stati64     sbuf;
     WIN32_FIND_DATA fd;
@@ -1419,38 +1488,17 @@ rb_w32_opendir(const char *filename)
 	return NULL;
     }
 
+    fh = open_dir_handle(filename, &fd);
+    if (fh == INVALID_HANDLE_VALUE) {
+	return NULL;
+    }
+
     //
     // Get us a DIR structure
     //
     p = calloc(sizeof(DIR), 1);
     if (p == NULL)
 	return NULL;
-
-    //
-    // Create the search pattern
-    //
-    len = strlen(filename) + 2 + 1;
-    if (!(scanname = malloc(len))) {
-	free(p);
-	return NULL;
-    }
-    strlcpy(scanname, filename, len);
-
-    if (index("/\\:", *CharPrev(scanname, scanname + strlen(scanname))) == NULL)
-	strlcat(scanname, "/*", len);
-    else
-	strlcat(scanname, "*", len);
-
-    //
-    // do the FindFirstFile call
-    //
-    fh = FindFirstFile(scanname, &fd);
-    free(scanname);
-    if (fh == INVALID_HANDLE_VALUE) {
-	errno = map_errno(GetLastError());
-	free(p);
-	return NULL;
-    }
 
     idx = 0;
 
@@ -1942,11 +1990,8 @@ rb_w32_fdclr(int fd, fd_set *set)
 
     for (i = 0; i < set->fd_count; i++) {
         if (set->fd_array[i] == s) {
-            while (i < set->fd_count - 1) {
-                set->fd_array[i] = set->fd_array[i + 1];
-                i++;
-            }
-            set->fd_count--;
+	    memmove(&set->fd_array[i], &set->fd_array[i+1],
+		    sizeof(set->fd_array[0]) * (--set->fd_count - i));
             break;
         }
     }
@@ -1974,7 +2019,7 @@ rb_w32_fdisset(int fd, fd_set *set)
 #undef select
 
 static int
-extract_fd(fd_set *dst, fd_set *src, int (*func)(SOCKET))
+extract_fd(rb_fdset_t *dst, fd_set *src, int (*func)(SOCKET))
 {
     int s = 0;
     if (!src || !dst) return 0;
@@ -1985,11 +2030,16 @@ extract_fd(fd_set *dst, fd_set *src, int (*func)(SOCKET))
 	if (!func || (*func)(fd)) { /* move it to dst */
 	    int d;
 
-	    for (d = 0; d < dst->fd_count; d++) {
-		if (dst->fd_array[d] == fd) break;
+	    for (d = 0; d < dst->fdset->fd_count; d++) {
+		if (dst->fdset->fd_array[d] == fd)
+		    break;
 	    }
-	    if (d == dst->fd_count && dst->fd_count < FD_SETSIZE) {
-		dst->fd_array[dst->fd_count++] = fd;
+	    if (d == dst->fdset->fd_count) {
+		if (dst->fdset->fd_count >= dst->capa) {
+		    dst->capa = (dst->fdset->fd_count / FD_SETSIZE + 1) * FD_SETSIZE;
+		    dst->fdset = xrealloc(dst->fdset, sizeof(unsigned int) + sizeof(SOCKET) * dst->capa);
+		}
+		dst->fdset->fd_array[dst->fdset->fd_count++] = fd;
 	    }
 	    memmove(
 		&src->fd_array[s],
@@ -1997,6 +2047,27 @@ extract_fd(fd_set *dst, fd_set *src, int (*func)(SOCKET))
 		sizeof(src->fd_array[0]) * (--src->fd_count - s));
 	}
 	else s++;
+    }
+
+    return dst->fdset->fd_count;
+}
+
+static int
+copy_fd(fd_set *dst, fd_set *src)
+{
+    int s;
+    if (!src || !dst) return 0;
+
+    for (s = 0; s < src->fd_count; ++s) {
+	SOCKET fd = src->fd_array[s];
+	int d;
+	for (d = 0; d < dst->fd_count; ++d) {
+	    if (dst->fd_array[d] == fd)
+		break;
+	}
+	if (d == dst->fd_count && d < FD_SETSIZE) {
+	    dst->fd_array[dst->fd_count++] = fd;
+	}
     }
 
     return dst->fd_count;
@@ -2139,11 +2210,11 @@ rb_w32_select(int nfds, fd_set *rd, fd_set *wr, fd_set *ex,
 	      struct timeval *timeout)
 {
     int r;
-    fd_set pipe_rd;
-    fd_set cons_rd;
-    fd_set else_rd;
-    fd_set else_wr;
-    fd_set except;
+    rb_fdset_t pipe_rd;
+    rb_fdset_t cons_rd;
+    rb_fdset_t else_rd;
+    rb_fdset_t else_wr;
+    rb_fdset_t except;
     int nonsock = 0;
     struct timeval limit;
 
@@ -2178,19 +2249,19 @@ rb_w32_select(int nfds, fd_set *rd, fd_set *wr, fd_set *ex,
     // until some data is read from pipe. but ruby is single threaded system,
     // so whole system will be blocked forever.
 
-    else_rd.fd_count = 0;
+    rb_fd_init(&else_rd);
     nonsock += extract_fd(&else_rd, rd, is_not_socket);
 
-    pipe_rd.fd_count = 0;
-    extract_fd(&pipe_rd, &else_rd, is_pipe); // should not call is_pipe for socket
+    rb_fd_init(&pipe_rd);
+    extract_fd(&pipe_rd, else_rd.fdset, is_pipe); // should not call is_pipe for socket
 
-    cons_rd.fd_count = 0;
-    extract_fd(&cons_rd, &else_rd, is_console); // ditto
+    rb_fd_init(&cons_rd);
+    extract_fd(&cons_rd, else_rd.fdset, is_console); // ditto
 
-    else_wr.fd_count = 0;
+    rb_fd_init(&else_wr);
     nonsock += extract_fd(&else_wr, wr, is_not_socket);
 
-    except.fd_count = 0;
+    rb_fd_init(&except);
     extract_fd(&except, ex, is_not_socket); // drop only
 
     r = 0;
@@ -2209,15 +2280,17 @@ rb_w32_select(int nfds, fd_set *rd, fd_set *wr, fd_set *ex,
 	    if (nonsock) {
 		// modifying {else,pipe,cons}_rd is safe because
 		// if they are modified, function returns immediately.
-		extract_fd(&else_rd, &pipe_rd, is_readable_pipe);
-		extract_fd(&else_rd, &cons_rd, is_readable_console);
+		extract_fd(&else_rd, pipe_rd.fdset, is_readable_pipe);
+		extract_fd(&else_rd, cons_rd.fdset, is_readable_console);
 	    }
 
-	    if (else_rd.fd_count || else_wr.fd_count) {
+	    if (else_rd.fdset->fd_count || else_wr.fdset->fd_count) {
 		r = do_select(nfds, rd, wr, ex, &zero); // polling
 		if (r < 0) break; // XXX: should I ignore error and return signaled handles?
-		r += extract_fd(rd, &else_rd, NULL); // move all
-		r += extract_fd(wr, &else_wr, NULL); // move all
+		r = copy_fd(rd, else_rd.fdset);
+		r += copy_fd(wr, else_wr.fdset);
+		if (ex)
+		    r += ex->fd_count;
 		break;
 	    }
 	    else {
@@ -2246,6 +2319,12 @@ rb_w32_select(int nfds, fd_set *rd, fd_set *wr, fd_set *ex,
 	    }
 	}
     }
+
+    rb_fd_term(&except);
+    rb_fd_term(&else_wr);
+    rb_fd_term(&cons_rd);
+    rb_fd_term(&pipe_rd);
+    rb_fd_term(&else_rd);
 
     return r;
 }
@@ -3450,6 +3529,17 @@ fileattr_to_unixmode(DWORD attr, const char *path)
 }
 
 static int
+check_valid_dir(const char *path)
+{
+    WIN32_FIND_DATA fd;
+    HANDLE fh = open_dir_handle(path, &fd);
+    if (fh == INVALID_HANDLE_VALUE)
+	return -1;
+    FindClose(fh);
+    return 0;
+}
+
+static int
 winnt_stat(const char *path, struct stati64 *st)
 {
     HANDLE h;
@@ -3479,6 +3569,9 @@ winnt_stat(const char *path, struct stati64 *st)
 	    errno = map_errno(GetLastError());
 	    return -1;
 	}
+	if (attr & FILE_ATTRIBUTE_DIRECTORY) {
+	    if (check_valid_dir(path)) return -1;
+	}
 	st->st_mode  = fileattr_to_unixmode(attr, path);
     }
 
@@ -3487,6 +3580,21 @@ winnt_stat(const char *path, struct stati64 *st)
 
     return 0;
 }
+
+#ifdef WIN95
+static int
+win95_stat(const char *path, struct stati64 *st)
+{
+    int ret = stati64(path, st);
+    if (ret) return ret;
+    if (st->st_mode & S_IFDIR) {
+	return check_valid_dir(path);
+    }
+    return 0;
+}
+#else
+#define win95_stat(path, st) -1
+#endif
 
 int
 rb_w32_stat(const char *path, struct stat *st)
@@ -3535,7 +3643,7 @@ rb_w32_stati64(const char *path, struct stati64 *st)
     else if (*end == '\\' || (buf1 + 1 == end && *end == ':'))
 	strlcat(buf1, ".", size);
 
-    ret = IsWinNT() ? winnt_stat(buf1, st) : stati64(buf1, st);
+    ret = IsWinNT() ? winnt_stat(buf1, st) : win95_stat(buf1, st);
     if (ret == 0) {
 	st->st_mode &= ~(S_IWGRP | S_IWOTH);
     }
@@ -4268,10 +4376,6 @@ rb_w32_read(int fd, void *buf, size_t size)
     if (_get_osfhandle(fd) == -1) {
 	return -1;
     }
-    if (!(_osfile(fd) & FOPEN)) {
-	errno = EBADF;
-	return -1;
-    }
 
     if (_osfile(fd) & FTEXT) {
 	return _read(fd, buf, size);
@@ -4388,10 +4492,6 @@ rb_w32_write(int fd, const void *buf, size_t size)
 
     // validate fd by using _get_osfhandle() because we cannot access _nhandle
     if (_get_osfhandle(fd) == -1) {
-	return -1;
-    }
-    if (!(_osfile(fd) & FOPEN)) {
-	errno = EBADF;
 	return -1;
     }
 
@@ -4624,10 +4724,6 @@ rb_w32_isatty(int fd)
 {
     // validate fd by using _get_osfhandle() because we cannot access _nhandle
     if (_get_osfhandle(fd) == -1) {
-	return 0;
-    }
-    if (!(_osfile(fd) & FOPEN)) {
-	errno = EBADF;
 	return 0;
     }
     if (!(_osfile(fd) & FDEV)) {

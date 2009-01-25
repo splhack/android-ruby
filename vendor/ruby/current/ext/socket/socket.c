@@ -926,7 +926,7 @@ port_str(VALUE port, char *pbuf, size_t len)
 #endif
 
 static struct addrinfo*
-sock_getaddrinfo(VALUE host, VALUE port, struct addrinfo *hints)
+sock_getaddrinfo(VALUE host, VALUE port, struct addrinfo *hints, int socktype_hack)
 {
     struct addrinfo* res = NULL;
     char *hostp, *portp;
@@ -936,7 +936,7 @@ sock_getaddrinfo(VALUE host, VALUE port, struct addrinfo *hints)
     hostp = host_str(host, hbuf, sizeof(hbuf));
     portp = port_str(port, pbuf, sizeof(pbuf));
 
-    if (hints->ai_socktype == 0 && hints->ai_flags == 0 && str_isnumber(portp)) {
+    if (socktype_hack && hints->ai_socktype == 0 && hints->ai_flags == 0 && str_isnumber(portp)) {
        hints->ai_socktype = SOCK_DGRAM;
     }
 
@@ -978,7 +978,7 @@ sock_addrinfo(VALUE host, VALUE port, int socktype, int flags)
     hints.ai_family = AF_UNSPEC;
     hints.ai_socktype = socktype;
     hints.ai_flags = flags;
-    return sock_getaddrinfo(host, port, &hints);
+    return sock_getaddrinfo(host, port, &hints, 1);
 }
 
 static VALUE
@@ -3315,7 +3315,7 @@ sock_s_getaddrinfo(int argc, VALUE *argv)
     if (!NIL_P(flags)) {
 	hints.ai_flags = NUM2INT(flags);
     }
-    res = sock_getaddrinfo(host, port, &hints);
+    res = sock_getaddrinfo(host, port, &hints, 0);
 
     ret = make_addrinfo(res);
     freeaddrinfo(res);
@@ -3484,6 +3484,11 @@ sock_s_unpack_sockaddr_in(VALUE self, VALUE addr)
     VALUE host;
 
     sockaddr = (struct sockaddr_in*)StringValuePtr(addr);
+    if (RSTRING_LEN(addr) <
+        (char*)&((struct sockaddr *)sockaddr)->sa_family +
+        sizeof(((struct sockaddr *)sockaddr)->sa_family) -
+        (char*)sockaddr)
+        rb_raise(rb_eArgError, "too short sockaddr");
     if (((struct sockaddr *)sockaddr)->sa_family != AF_INET
 #ifdef INET6
         && ((struct sockaddr *)sockaddr)->sa_family != AF_INET6
@@ -3530,6 +3535,11 @@ sock_s_unpack_sockaddr_un(VALUE self, VALUE addr)
     VALUE path;
 
     sockaddr = (struct sockaddr_un*)StringValuePtr(addr);
+    if (RSTRING_LEN(addr) <
+        (char*)&((struct sockaddr *)sockaddr)->sa_family +
+        sizeof(((struct sockaddr *)sockaddr)->sa_family) -
+        (char*)sockaddr)
+        rb_raise(rb_eArgError, "too short sockaddr");
     if (((struct sockaddr *)sockaddr)->sa_family != AF_UNIX) {
         rb_raise(rb_eArgError, "not an AF_UNIX sockaddr");
     }
@@ -3555,7 +3565,16 @@ sock_define_const(const char *name, int value, VALUE mConst)
     rb_define_const(rb_cSocket, name, INT2FIX(value));
     rb_define_const(mConst, name, INT2FIX(value));
 }
+
+static void
+sock_define_uconst(const char *name, unsigned int value, VALUE mConst)
+{
+    rb_define_const(rb_cSocket, name, UINT2NUM(value));
+    rb_define_const(mConst, name, UINT2NUM(value));
+}
+
 #define sock_define_const(name, value) sock_define_const(name, value, mConst)
+#define sock_define_uconst(name, value) sock_define_uconst(name, value, mConst)
 
 /*
  * Class +Socket+ provides access to the underlying operating system

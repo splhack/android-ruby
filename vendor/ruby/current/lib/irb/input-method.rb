@@ -1,7 +1,7 @@
 #
 #   irb/input-method.rb - input methods used irb
 #   	$Release Version: 0.9.5$
-#   	$Revision: 21067 $
+#   	$Revision: 21546 $
 #   	by Keiju ISHITSUKA(keiju@ruby-lang.org)
 #
 # --
@@ -20,7 +20,7 @@ module IRB
   #
   STDIN_FILE_NAME = "(line)"
   class InputMethod
-    @RCS_ID='-$Id: input-method.rb 21067 2008-12-26 08:06:33Z yugui $-'
+    @RCS_ID='-$Id: input-method.rb 21546 2009-01-15 15:36:57Z yugui $-'
 
     def initialize(file = STDIN_FILE_NAME)
       @file_name = file
@@ -45,7 +45,7 @@ module IRB
       @line_no = 0
       @line = []
       @stdin = IO.open(STDIN.to_i, :external_encoding => IRB.conf[:LC_MESSAGES].encoding, :internal_encoding => "-")
-      @stdout = IO.open(STDOUT.to_i, :external_encoding => IRB.conf[:LC_MESSAGES].encoding, :internal_encoding => "-")
+      @stdout = IO.open(STDOUT.to_i, 'w', :external_encoding => IRB.conf[:LC_MESSAGES].encoding, :internal_encoding => "-")
     end
 
     def gets
@@ -106,7 +106,7 @@ module IRB
 	@eof = false
 
 	@stdin = IO.open(STDIN.to_i, :external_encoding => IRB.conf[:LC_MESSAGES].encoding, :internal_encoding => "-")
-	@stdout = IO.open(STDOUT.to_i, :external_encoding => IRB.conf[:LC_MESSAGES].encoding, :internal_encoding => "-")
+	@stdout = IO.open(STDOUT.to_i, 'w', :external_encoding => IRB.conf[:LC_MESSAGES].encoding, :internal_encoding => "-")
       end
 
       def gets

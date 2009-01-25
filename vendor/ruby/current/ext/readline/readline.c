@@ -8,7 +8,7 @@
   Copyright (C) 1997-2008  Shugo Maeda
   Copyright (C) 2008       TAKAO Kouji
 
-  $Id: readline.c 20709 2008-12-13 01:59:19Z yugui $
+  $Id: readline.c 21634 2009-01-17 12:20:00Z yugui $
 
   Contact:
    - TAKAO Kouji <kouji at takao7 dot net> (current maintainer)
@@ -1176,7 +1176,7 @@ Init_readline()
     VALUE history, fcomp, ucomp, version;
 
     /* Allow conditional parsing of the ~/.inputrc file. */
-    rl_readline_name = "Ruby";
+    rl_readline_name = (char *)"Ruby";
 
     using_history();
 
@@ -1287,7 +1287,7 @@ Init_readline()
 #else
 	{
 	    HIST_ENTRY *entry = remove_history(0);
-	    free(entry->line);
+	    free((char *)entry->line);
 	    free(entry);
 	}
 #endif

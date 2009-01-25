@@ -973,7 +973,7 @@ void rb_thread_reset_timer_thread(void);
 static int forked_child = 0;
 
 #define before_exec() \
-  (rb_enable_interrupt(), forked_child ? 0 : rb_thread_stop_timer_thread())
+    (rb_enable_interrupt(), (forked_child ? 0 : (rb_thread_stop_timer_thread(), 1)))
 #define after_exec() \
   (rb_thread_reset_timer_thread(), rb_thread_start_timer_thread(), forked_child = 0, rb_disable_interrupt())
 #define before_fork() before_exec()
@@ -2559,12 +2559,8 @@ rb_f_abort(int argc, VALUE *argv)
 }
 
 
-#if defined(sun)
-#define signal(a,b) sigset(a,b)
-#else
-# if defined(POSIX_SIGNAL)
-#  define signal(a,b) posix_signal(a,b)
-# endif
+#if defined(POSIX_SIGNAL)
+# define signal(a,b) posix_signal(a,b)
 #endif
 
 void

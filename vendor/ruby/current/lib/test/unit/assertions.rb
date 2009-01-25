@@ -22,12 +22,18 @@ module Test
           msg = args.pop
         end
         begin
-          yield
+          line = __LINE__; yield
         rescue Exception => e
-          if ((args.empty? && !e.instance_of?(MiniTest::Assertion)) ||
+          bt = e.backtrace
+          as = e.instance_of?(MiniTest::Assertion)
+          if as
+            ans = /\A#{Regexp.quote(__FILE__)}:#{line}:in /o
+            bt.reject! {|line| ans =~ line}
+          end
+          if ((args.empty? && !as) ||
               args.any? {|a| a.instance_of?(Module) ? e.is_a?(a) : e.class == a })
             msg = message(msg) { "Exception raised:\n<#{mu_pp(e)}>" }
-            raise MiniTest::Assertion, msg.call, e.backtrace
+            raise MiniTest::Assertion, msg.call, bt
           else
             raise
           end
@@ -92,6 +98,7 @@ module Test
 
       def assert_no_match(regexp, string, msg=nil)
         assert_instance_of(Regexp, regexp, "The first argument to assert_no_match should be a Regexp.")
+        self._assertions -= 1
         msg = message(msg) { "<#{mu_pp(regexp)}> expected to not match\n<#{mu_pp(string)}>" }
         assert(regexp !~ string, msg)
       end

@@ -13,8 +13,13 @@
 #include "ruby/encoding.h"
 #include "regenc.h"
 #include <ctype.h>
+#ifndef NO_LOCALE_CHARMAP
+#ifdef __CYGWIN__
+#include <windows.h>
+#endif
 #ifdef HAVE_LANGINFO_H
 #include <langinfo.h>
+#endif
 #endif
 #include "ruby/util.h"
 
@@ -1025,8 +1030,12 @@ rb_encoding *
 rb_filesystem_encoding(void)
 {
     rb_encoding *enc;
-#if defined _WIN32
-    enc = rb_locale_encoding();
+#if defined NO_LOCALE_CHARMAP
+    enc = rb_default_external_encoding();
+#elif defined _WIN32 || defined __CYGWIN__
+    char cp[sizeof(int) * 8 / 3 + 4];
+    snprintf(cp, sizeof cp, "CP%d", GetOEMCP());
+    enc = rb_enc_find(cp);
 #elif defined __APPLE__
     enc = rb_enc_find("UTF8-MAC");
 #else
@@ -1041,8 +1050,7 @@ struct default_encoding {
 };
 
 static int
-enc_set_default_encoding(struct default_encoding *def, VALUE encoding,
-			 const char *name, int defindex)
+enc_set_default_encoding(struct default_encoding *def, VALUE encoding, const char *name)
 {
     int overridden = Qfalse;
     if (def->index != -2)
@@ -1057,8 +1065,6 @@ enc_set_default_encoding(struct default_encoding *def, VALUE encoding,
     }
     else {
 	def->index = rb_enc_to_index(rb_to_encoding(encoding));
-	if (def->index == ENCINDEX_US_ASCII)
-	    def->index = defindex;
 	def->enc = 0;
 	enc_alias_internal(name, def->index);
     }
@@ -1109,7 +1115,7 @@ rb_enc_set_default_external(VALUE encoding)
         rb_raise(rb_eArgError, "default external can not be nil");
     }
     enc_set_default_encoding(&default_external, encoding,
-			     "external", ENCINDEX_US_ASCII);
+                            "external");
 }
 
 /*
@@ -1162,7 +1168,7 @@ void
 rb_enc_set_default_internal(VALUE encoding)
 {
     enc_set_default_encoding(&default_internal, encoding,
-			     "internal", ENCINDEX_UTF_8);
+                            "internal");
 }
 
 /*
@@ -1198,18 +1204,30 @@ set_default_internal(VALUE klass, VALUE encoding)
  *     LANG=ja
  *       Encoding.locale_charmap  => "eucJP"
  *
+ * The result is higly platform dependent.
+ * So Encoding.find(Encoding.locale_charmap) may cause an error.
+ * If you need some encoding object even for unknown locale,
+ * Encoding.find("locale") can be used.
+ *
  */
 VALUE
 rb_locale_charmap(VALUE klass)
 {
 #if defined NO_LOCALE_CHARMAP
     return rb_usascii_str_new2("ASCII-8BIT");
+#elif defined _WIN32 || defined __CYGWIN__
+    const char *nl_langinfo_codeset(void);
+    const char *codeset = nl_langinfo_codeset();
+    char cp[sizeof(int) * 3 + 4];
+    if (!codeset) {
+	snprintf(cp, sizeof(cp), "CP%d", GetConsoleCP());
+	codeset = cp;
+    }
+    return rb_usascii_str_new2(codeset);
 #elif defined HAVE_LANGINFO_H
     char *codeset;
     codeset = nl_langinfo(CODESET);
     return rb_usascii_str_new2(codeset);
-#elif defined _WIN32
-    return rb_sprintf("CP%d", GetACP());
 #else
     return Qnil;
 #endif

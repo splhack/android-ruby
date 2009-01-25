@@ -1400,6 +1400,391 @@ class TestTranscode < Test::Unit::TestCase
     assert_raise(Encoding::UndefinedConversionError) { "\u203E".encode("CP51932") }
   end
 
+  def test_gb2312
+    check_both_ways("\u3000", "\xA1\xA1", 'GB2312') # full-width space
+    check_both_ways("\u3013", "\xA1\xFE", 'GB2312') # 〓
+    assert_raise(Encoding::UndefinedConversionError) { "\xA2\xB0".encode("utf-8", 'GB2312') }
+    check_both_ways("\u2488", "\xA2\xB1", 'GB2312') # ⒈
+    assert_raise(Encoding::UndefinedConversionError) { "\xA2\xE4".encode("utf-8", 'GB2312') }
+    check_both_ways("\u3220", "\xA2\xE5", 'GB2312') # ㈠
+    assert_raise(Encoding::UndefinedConversionError) { "\xA2\xF0".encode("utf-8", 'GB2312') }
+    check_both_ways("\u2160", "\xA2\xF1", 'GB2312') # Ⅰ
+    check_both_ways("\uFF01", "\xA3\xA1", 'GB2312') # ！
+    check_both_ways("\uFFE3", "\xA3\xFE", 'GB2312') # ￣
+    check_both_ways("\u3041", "\xA4\xA1", 'GB2312') # ぁ
+    check_both_ways("\u30A1", "\xA5\xA1", 'GB2312') # ァ
+    check_both_ways("\u0391", "\xA6\xA1", 'GB2312') # Α
+    check_both_ways("\u03B1", "\xA6\xC1", 'GB2312') # α
+    check_both_ways("\u0410", "\xA7\xA1", 'GB2312') # А
+    check_both_ways("\u0430", "\xA7\xD1", 'GB2312') # а
+    check_both_ways("\u0101", "\xA8\xA1", 'GB2312') # ā
+    assert_raise(Encoding::UndefinedConversionError) { "\xA8\xC4".encode("utf-8", 'GB2312') }
+    check_both_ways("\u3105", "\xA8\xC5", 'GB2312') # ㄅ
+    assert_raise(Encoding::UndefinedConversionError) { "\xA9\xA3".encode("utf-8", 'GB2312') }
+    check_both_ways("\u2500", "\xA9\xA4", 'GB2312') # ─
+    check_both_ways("\u554A", "\xB0\xA1", 'GB2312') # 啊
+    check_both_ways("\u5265", "\xB0\xFE", 'GB2312') # 剥
+    check_both_ways("\u4FCA", "\xBF\xA1", 'GB2312') # 俊
+    check_both_ways("\u5080", "\xBF\xFE", 'GB2312') # 傀
+    check_both_ways("\u9988", "\xC0\xA1", 'GB2312') # 馈
+    check_both_ways("\u4FD0", "\xC0\xFE", 'GB2312') # 俐
+    check_both_ways("\u7A00", "\xCF\xA1", 'GB2312') # 稀
+    check_both_ways("\u6653", "\xCF\xFE", 'GB2312') # 晓
+    check_both_ways("\u5C0F", "\xD0\xA1", 'GB2312') # 小
+    check_both_ways("\u7384", "\xD0\xFE", 'GB2312') # 玄
+    check_both_ways("\u4F4F", "\xD7\xA1", 'GB2312') # 住
+    check_both_ways("\u5EA7", "\xD7\xF9", 'GB2312') # 座
+    assert_raise(Encoding::UndefinedConversionError) { "\xD7\xFA".encode("utf-8", 'GB2312') }
+    check_both_ways("\u647A", "\xDF\xA1", 'GB2312') # 摺
+    check_both_ways("\u553C", "\xDF\xFE", 'GB2312') # 唼
+    check_both_ways("\u5537", "\xE0\xA1", 'GB2312') # 唷
+    check_both_ways("\u5E3C", "\xE0\xFE", 'GB2312') # 帼
+    check_both_ways("\u94E9", "\xEF\xA1", 'GB2312') # 铩
+    check_both_ways("\u7A14", "\xEF\xFE", 'GB2312') # 稔
+    check_both_ways("\u7A39", "\xF0\xA1", 'GB2312') # 稹
+    check_both_ways("\u7619", "\xF0\xFE", 'GB2312') # 瘙
+    check_both_ways("\u9CCC", "\xF7\xA1", 'GB2312') # 鳌
+    check_both_ways("\u9F44", "\xF7\xFE", 'GB2312') # 齄
+    check_both_ways("\u9752\u5C71\u5B66\u9662\u5927\u5B66", "\xC7\xE0\xC9\xBD\xD1\xA7\xD4\xBA\xB4\xF3\xD1\xA7", 'GB2312') # 青山学院大学
+  end
+  
+  def test_gbk
+    check_both_ways("\u4E02", "\x81\x40", 'GBK') # 丂
+    check_both_ways("\u4E8A", "\x81\x7E", 'GBK') # 亊
+    check_both_ways("\u4E90", "\x81\x80", 'GBK') # 亐
+    check_both_ways("\u4FA2", "\x81\xFE", 'GBK') # 侢
+    check_both_ways("\u5EC6", "\x8F\x40", 'GBK') # 廆
+    check_both_ways("\u5F24", "\x8F\x7E", 'GBK') # 弤
+    check_both_ways("\u5F28", "\x8F\x80", 'GBK') # 弨
+    check_both_ways("\u6007", "\x8F\xFE", 'GBK') # 怇
+    check_both_ways("\u6008", "\x90\x40", 'GBK') # 怈
+    check_both_ways("\u6080", "\x90\x7E", 'GBK') # 悀
+    check_both_ways("\u6081", "\x90\x80", 'GBK') # 悁
+    check_both_ways("\u6146", "\x90\xFE", 'GBK') # 慆
+    check_both_ways("\u70DC", "\x9F\x40", 'GBK') # 烜
+    check_both_ways("\u7134", "\x9F\x7E", 'GBK') # 焴
+    check_both_ways("\u7135", "\x9F\x80", 'GBK') # 焵
+    check_both_ways("\u71D3", "\x9F\xFE", 'GBK') # 燓
+    check_both_ways("\u71D6", "\xA0\x40", 'GBK') # 燖
+    check_both_ways("\u721A", "\xA0\x7E", 'GBK') # 爚
+    check_both_ways("\u721B", "\xA0\x80", 'GBK') # 爛
+    check_both_ways("\u72DB", "\xA0\xFE", 'GBK') # 狛
+    check_both_ways("\u3000", "\xA1\xA1", 'GBK') # full-width space
+    check_both_ways("\u3001", "\xA1\xA2", 'GBK') # 、
+    check_both_ways("\u3013", "\xA1\xFE", 'GBK') # 〓
+    assert_raise(Encoding::UndefinedConversionError) { "\xA2\xA0".encode("utf-8", 'GBK') }
+    check_both_ways("\u2170", "\xA2\xA1", 'GBK') # ⅰ
+    assert_raise(Encoding::UndefinedConversionError) { "\xA2\xB0".encode("utf-8", 'GBK') }
+    check_both_ways("\u2488", "\xA2\xB1", 'GBK') # ⒈
+    assert_raise(Encoding::UndefinedConversionError) { "\xA2\xE4".encode("utf-8", 'GBK') }
+    check_both_ways("\u3220", "\xA2\xE5", 'GBK') # ㈠
+    assert_raise(Encoding::UndefinedConversionError) { "\xA2\xF0".encode("utf-8", 'GBK') }
+    check_both_ways("\u2160", "\xA2\xF1", 'GBK') # Ⅰ
+    assert_raise(Encoding::UndefinedConversionError) { "\xA3\xA0".encode("utf-8", 'GBK') }
+    check_both_ways("\uFF01", "\xA3\xA1", 'GBK') # ！
+    check_both_ways("\uFFE3", "\xA3\xFE", 'GBK') # ￣
+    assert_raise(Encoding::UndefinedConversionError) { "\xA4\xA0".encode("utf-8", 'GBK') }
+    check_both_ways("\u3041", "\xA4\xA1", 'GBK') # ぁ
+    assert_raise(Encoding::UndefinedConversionError) { "\xA5\xA0".encode("utf-8", 'GBK') }
+    check_both_ways("\u30A1", "\xA5\xA1", 'GBK') # ァ
+    check_both_ways("\u0391", "\xA6\xA1", 'GBK') # Α
+    check_both_ways("\u03B1", "\xA6\xC1", 'GBK') # α
+    assert_raise(Encoding::UndefinedConversionError) { "\xA6\xED".encode("utf-8", 'GBK') }
+    check_both_ways("\uFE3B", "\xA6\xEE", 'GBK') # ︻
+    check_both_ways("\u0410", "\xA7\xA1", 'GBK') # А
+    check_both_ways("\u0430", "\xA7\xD1", 'GBK') # а
+    check_both_ways("\u02CA", "\xA8\x40", 'GBK') # ˊ
+    check_both_ways("\u2587", "\xA8\x7E", 'GBK') # ▇
+    assert_raise(Encoding::UndefinedConversionError) { "\xA8\x96".encode("utf-8", 'GBK') }
+    check_both_ways("\u0101", "\xA8\xA1", 'GBK') # ā
+    assert_raise(Encoding::UndefinedConversionError) { "\xA8\xBC".encode("utf-8", 'GBK') }
+    assert_raise(Encoding::UndefinedConversionError) { "\xA8\xBF".encode("utf-8", 'GBK') }
+    assert_raise(Encoding::UndefinedConversionError) { "\xA8\xC4".encode("utf-8", 'GBK') }
+    check_both_ways("\u3105", "\xA8\xC5", 'GBK') # ㄅ
+    check_both_ways("\u3021", "\xA9\x40", 'GBK') # 〡
+    assert_raise(Encoding::UndefinedConversionError) { "\xA9\x58".encode("utf-8", 'GBK') }
+    assert_raise(Encoding::UndefinedConversionError) { "\xA9\x5B".encode("utf-8", 'GBK') }
+    assert_raise(Encoding::UndefinedConversionError) { "\xA9\x5D".encode("utf-8", 'GBK') }
+    check_both_ways("\u3007", "\xA9\x96", 'GBK') # 〇
+    assert_raise(Encoding::UndefinedConversionError) { "\xA9\xA3".encode("utf-8", 'GBK') }
+    check_both_ways("\u2500", "\xA9\xA4", 'GBK') # ─
+    assert_raise(Encoding::UndefinedConversionError) { "\xA9\xF0".encode("utf-8", 'GBK') }
+    check_both_ways("\u7588", "\xAF\x40", 'GBK') # 疈
+    check_both_ways("\u7607", "\xAF\x7E", 'GBK') # 瘇
+    check_both_ways("\u7608", "\xAF\x80", 'GBK') # 瘈
+    check_both_ways("\u7644", "\xAF\xA0", 'GBK') # 癄
+    assert_raise(Encoding::UndefinedConversionError) { "\xAF\xA1".encode("utf-8", 'GBK') }
+    check_both_ways("\u7645", "\xB0\x40", 'GBK') # 癅
+    check_both_ways("\u769B", "\xB0\x7E", 'GBK') # 皛
+    check_both_ways("\u769C", "\xB0\x80", 'GBK') # 皜
+    check_both_ways("\u5265", "\xB0\xFE", 'GBK') # 剥
+    check_both_ways("\u7DFB", "\xBF\x40", 'GBK') # 緻
+    check_both_ways("\u7E39", "\xBF\x7E", 'GBK') # 縹
+    check_both_ways("\u7E3A", "\xBF\x80", 'GBK') # 縺
+    check_both_ways("\u5080", "\xBF\xFE", 'GBK') # 傀
+    check_both_ways("\u7E5E", "\xC0\x40", 'GBK') # 繞
+    check_both_ways("\u7E9E", "\xC0\x7E", 'GBK') # 纞
+    check_both_ways("\u7EAE", "\xC0\x80", 'GBK') # 纮
+    check_both_ways("\u4FD0", "\xC0\xFE", 'GBK') # 俐
+    check_both_ways("\u87A5", "\xCF\x40", 'GBK') # 螥
+    check_both_ways("\u87F8", "\xCF\x7E", 'GBK') # 蟸
+    check_both_ways("\u87FA", "\xCF\x80", 'GBK') # 蟺
+    check_both_ways("\u6653", "\xCF\xFE", 'GBK') # 晓
+    check_both_ways("\u8824", "\xD0\x40", 'GBK') # 蠤
+    check_both_ways("\u887A", "\xD0\x7E", 'GBK') # 衺
+    check_both_ways("\u887B", "\xD0\x80", 'GBK') # 衻
+    check_both_ways("\u7384", "\xD0\xFE", 'GBK') # 玄
+    check_both_ways("\u9019", "\xDF\x40", 'GBK') # 這
+    check_both_ways("\u9081", "\xDF\x7E", 'GBK') # 邁
+    check_both_ways("\u9084", "\xDF\x80", 'GBK') # 還
+    check_both_ways("\u553C", "\xDF\xFE", 'GBK') # 唼
+    check_both_ways("\u90C2", "\xE0\x40", 'GBK') # 郂
+    check_both_ways("\u911C", "\xE0\x7E", 'GBK') # 鄜
+    check_both_ways("\u911D", "\xE0\x80", 'GBK') # 鄝
+    check_both_ways("\u5E3C", "\xE0\xFE", 'GBK') # 帼
+    check_both_ways("\u986F", "\xEF\x40", 'GBK') # 顯
+    check_both_ways("\u98E4", "\xEF\x7E", 'GBK') # 飤
+    check_both_ways("\u98E5", "\xEF\x80", 'GBK') # 飥
+    check_both_ways("\u7A14", "\xEF\xFE", 'GBK') # 稔
+    check_both_ways("\u9908", "\xF0\x40", 'GBK') # 餈
+    check_both_ways("\u9949", "\xF0\x7E", 'GBK') # 饉
+    check_both_ways("\u994A", "\xF0\x80", 'GBK') # 饊
+    check_both_ways("\u7619", "\xF0\xFE", 'GBK') # 瘙
+    check_both_ways("\u9F32", "\xFD\x40", 'GBK') # 鼲
+    check_both_ways("\u9F78", "\xFD\x7E", 'GBK') # 齸
+    check_both_ways("\u9F79", "\xFD\x80", 'GBK') # 齹
+    check_both_ways("\uF9F1", "\xFD\xA0", 'GBK') # 隣
+    assert_raise(Encoding::UndefinedConversionError) { "\xFD\xA1".encode("utf-8", 'GBK') }
+    check_both_ways("\uFA0C", "\xFE\x40", 'GBK') # 兀
+    check_both_ways("\uFA29", "\xFE\x4F", 'GBK') # 﨩
+    assert_raise(Encoding::UndefinedConversionError) { "\xFE\x50".encode("utf-8", 'GBK') }
+    check_both_ways("\u9752\u5C71\u5B66\u9662\u5927\u5B66", "\xC7\xE0\xC9\xBD\xD1\xA7\xD4\xBA\xB4\xF3\xD1\xA7", 'GBK') # 青山学院大学
+    check_both_ways("\u795E\u6797\u7FA9\u535A", "\xC9\xF1\xC1\xD6\xC1\x78\xB2\xA9", 'GBK') # 神林義博
+  end
+
+  def test_gb18030
+    # test from GBK
+    check_both_ways("\u4E02", "\x81\x40", 'GB18030') # 
+    check_both_ways("\u4E8A", "\x81\x7E", 'GB18030') # 
+    check_both_ways("\u4E90", "\x81\x80", 'GB18030') # 
+    check_both_ways("\u4FA2", "\x81\xFE", 'GB18030') # 侢
+    check_both_ways("\u5EC6", "\x8F\x40", 'GB18030') # 
+    check_both_ways("\u5F24", "\x8F\x7E", 'GB18030') # 弤
+    check_both_ways("\u5F28", "\x8F\x80", 'GB18030') # 弨
+    check_both_ways("\u6007", "\x8F\xFE", 'GB18030') # 
+    check_both_ways("\u6008", "\x90\x40", 'GB18030') # 
+    check_both_ways("\u6080", "\x90\x7E", 'GB18030') # 悀
+    check_both_ways("\u6081", "\x90\x80", 'GB18030') # 
+    check_both_ways("\u6146", "\x90\xFE", 'GB18030') # 
+    check_both_ways("\u70DC", "\x9F\x40", 'GB18030') # 
+    check_both_ways("\u7134", "\x9F\x7E", 'GB18030') # 焴
+    check_both_ways("\u7135", "\x9F\x80", 'GB18030') # 焵
+    check_both_ways("\u71D3", "\x9F\xFE", 'GB18030') # 
+    check_both_ways("\u71D6", "\xA0\x40", 'GB18030') # 
+    check_both_ways("\u721A", "\xA0\x7E", 'GB18030') # 
+    check_both_ways("\u721B", "\xA0\x80", 'GB18030') # 
+    check_both_ways("\u72DB", "\xA0\xFE", 'GB18030') # 
+    check_both_ways("\u3000", "\xA1\xA1", 'GB18030') # full-width space
+    check_both_ways("\u3001", "\xA1\xA2", 'GB18030') # 
+    check_both_ways("\u3013", "\xA1\xFE", 'GB18030') # 
+    #assert_raise(Encoding::UndefinedConversionError) { "\xA2\xA0".encode("utf-8", 'GB18030') }
+    check_both_ways("\u2170", "\xA2\xA1", 'GB18030') # ⅰ
+    #assert_raise(Encoding::UndefinedConversionError) { "\xA2\xB0".encode("utf-8", 'GB18030') }
+    check_both_ways("\u2488", "\xA2\xB1", 'GB18030') # 
+    #assert_raise(Encoding::UndefinedConversionError) { "\xA2\xE4".encode("utf-8", 'GB18030') }
+    check_both_ways("\u3220", "\xA2\xE5", 'GB18030') # ㈠
+    #assert_raise(Encoding::UndefinedConversionError) { "\xA2\xF0".encode("utf-8", 'GB18030') }
+    check_both_ways("\u2160", "\xA2\xF1", 'GB18030') # Ⅰ
+    #assert_raise(Encoding::UndefinedConversionError) { "\xA3\xA0".encode("utf-8", 'GB18030') }
+    check_both_ways("\uFF01", "\xA3\xA1", 'GB18030') # E
+    check_both_ways("\uFFE3", "\xA3\xFE", 'GB18030') # E
+    #assert_raise(Encoding::UndefinedConversionError) { "\xA4\xA0".encode("utf-8", 'GB18030') }
+    check_both_ways("\u3041", "\xA4\xA1", 'GB18030') # 
+    #assert_raise(Encoding::UndefinedConversionError) { "\xA5\xA0".encode("utf-8", 'GB18030') }
+    check_both_ways("\u30A1", "\xA5\xA1", 'GB18030') # ァ
+    check_both_ways("\u0391", "\xA6\xA1", 'GB18030') # 
+    check_both_ways("\u03B1", "\xA6\xC1", 'GB18030') # α
+    #assert_raise(Encoding::UndefinedConversionError) { "\xA6\xED".encode("utf-8", 'GB18030') }
+    check_both_ways("\uFE3B", "\xA6\xEE", 'GB18030') # E
+    check_both_ways("\u0410", "\xA7\xA1", 'GB18030') # 
+    check_both_ways("\u0430", "\xA7\xD1", 'GB18030') # а
+    check_both_ways("\u02CA", "\xA8\x40", 'GB18030') # 
+    check_both_ways("\u2587", "\xA8\x7E", 'GB18030') # 
+    #assert_raise(Encoding::UndefinedConversionError) { "\xA8\x96".encode("utf-8", 'GB18030') }
+    check_both_ways("\u0101", "\xA8\xA1", 'GB18030') # 
+    #assert_raise(Encoding::UndefinedConversionError) { "\xA8\xBC".encode("utf-8", 'GB18030') }
+    #assert_raise(Encoding::UndefinedConversionError) { "\xA8\xBF".encode("utf-8", 'GB18030') }
+    #assert_raise(Encoding::UndefinedConversionError) { "\xA8\xC4".encode("utf-8", 'GB18030') }
+    check_both_ways("\u3105", "\xA8\xC5", 'GB18030') # 
+    check_both_ways("\u3021", "\xA9\x40", 'GB18030') # 〡
+    #assert_raise(Encoding::UndefinedConversionError) { "\xA9\x58".encode("utf-8", 'GB18030') }
+    #assert_raise(Encoding::UndefinedConversionError) { "\xA9\x5B".encode("utf-8", 'GB18030') }
+    #assert_raise(Encoding::UndefinedConversionError) { "\xA9\x5D".encode("utf-8", 'GB18030') }
+    check_both_ways("\u3007", "\xA9\x96", 'GB18030') # 
+    #assert_raise(Encoding::UndefinedConversionError) { "\xA9\xA3".encode("utf-8", 'GB18030') }
+    check_both_ways("\u2500", "\xA9\xA4", 'GB18030') # ─
+    #assert_raise(Encoding::UndefinedConversionError) { "\xA9\xF0".encode("utf-8", 'GB18030') }
+    check_both_ways("\u7588", "\xAF\x40", 'GB18030') # 
+    check_both_ways("\u7607", "\xAF\x7E", 'GB18030') # 
+    check_both_ways("\u7608", "\xAF\x80", 'GB18030') # 
+    check_both_ways("\u7644", "\xAF\xA0", 'GB18030') # 
+    #assert_raise(Encoding::UndefinedConversionError) { "\xAF\xA1".encode("utf-8", 'GB18030') }
+    check_both_ways("\u7645", "\xB0\x40", 'GB18030') # 
+    check_both_ways("\u769B", "\xB0\x7E", 'GB18030') # 
+    check_both_ways("\u769C", "\xB0\x80", 'GB18030') # 
+    check_both_ways("\u5265", "\xB0\xFE", 'GB18030') # 剥
+    check_both_ways("\u7DFB", "\xBF\x40", 'GB18030') # 緻
+    check_both_ways("\u7E39", "\xBF\x7E", 'GB18030') # 縹
+    check_both_ways("\u7E3A", "\xBF\x80", 'GB18030') # 縺
+    check_both_ways("\u5080", "\xBF\xFE", 'GB18030') # 傀
+    check_both_ways("\u7E5E", "\xC0\x40", 'GB18030') # 
+    check_both_ways("\u7E9E", "\xC0\x7E", 'GB18030') # 
+    check_both_ways("\u7EAE", "\xC0\x80", 'GB18030') # 纮
+    check_both_ways("\u4FD0", "\xC0\xFE", 'GB18030') # 
+    check_both_ways("\u87A5", "\xCF\x40", 'GB18030') # 螥
+    check_both_ways("\u87F8", "\xCF\x7E", 'GB18030') # 蟸
+    check_both_ways("\u87FA", "\xCF\x80", 'GB18030') # 蟺
+    check_both_ways("\u6653", "\xCF\xFE", 'GB18030') # 
+    check_both_ways("\u8824", "\xD0\x40", 'GB18030') # 蠤
+    check_both_ways("\u887A", "\xD0\x7E", 'GB18030') # 衺
+    check_both_ways("\u887B", "\xD0\x80", 'GB18030') # 衻
+    check_both_ways("\u7384", "\xD0\xFE", 'GB18030') # 
+    check_both_ways("\u9019", "\xDF\x40", 'GB18030') # 
+    check_both_ways("\u9081", "\xDF\x7E", 'GB18030') # 
+    check_both_ways("\u9084", "\xDF\x80", 'GB18030') # 
+    check_both_ways("\u553C", "\xDF\xFE", 'GB18030') # 唼
+    check_both_ways("\u90C2", "\xE0\x40", 'GB18030') # 
+    check_both_ways("\u911C", "\xE0\x7E", 'GB18030') # 
+    check_both_ways("\u911D", "\xE0\x80", 'GB18030') # 
+    check_both_ways("\u5E3C", "\xE0\xFE", 'GB18030') # 帼
+    check_both_ways("\u986F", "\xEF\x40", 'GB18030') # 顯
+    check_both_ways("\u98E4", "\xEF\x7E", 'GB18030') # 飤
+    check_both_ways("\u98E5", "\xEF\x80", 'GB18030') # 飥
+    check_both_ways("\u7A14", "\xEF\xFE", 'GB18030') # 
+    check_both_ways("\u9908", "\xF0\x40", 'GB18030') # 
+    check_both_ways("\u9949", "\xF0\x7E", 'GB18030') # 
+    check_both_ways("\u994A", "\xF0\x80", 'GB18030') # 
+    check_both_ways("\u7619", "\xF0\xFE", 'GB18030') # 
+    check_both_ways("\u9F32", "\xFD\x40", 'GB18030') # 鼲
+    check_both_ways("\u9F78", "\xFD\x7E", 'GB18030') # 齸
+    check_both_ways("\u9F79", "\xFD\x80", 'GB18030') # 齹
+    check_both_ways("\uF9F1", "\xFD\xA0", 'GB18030') # E
+    #assert_raise(Encoding::UndefinedConversionError) { "\xFD\xA1".encode("utf-8", 'GB18030') }
+    check_both_ways("\uFA0C", "\xFE\x40", 'GB18030') # E
+    check_both_ways("\uFA29", "\xFE\x4F", 'GB18030') # E
+    #assert_raise(Encoding::UndefinedConversionError) { "\xFE\x50".encode("utf-8", 'GB18030') }
+    check_both_ways("\u9752\u5C71\u5B66\u9662\u5927\u5B66", "\xC7\xE0\xC9\xBD\xD1\xA7\xD4\xBA\xB4\xF3\xD1\xA7", 'GB18030') # 青山学院大学
+    check_both_ways("\u795E\u6797\u7FA9\u535A", "\xC9\xF1\xC1\xD6\xC1\x78\xB2\xA9", 'GB18030') # 神林義
+
+	# new tests for GB18030
+    check_both_ways("\u9FA6", "\x82\x35\x8F\x33", 'GB18030') # 龦
+    check_both_ways("\uD7FF", "\x83\x36\xC7\x38", 'GB18030') # No name ()
+    
+    check_both_ways("\u0452", "\x81\x30\xD3\x30", 'GB18030') # 
+    check_both_ways("\u200F", "\x81\x36\xA5\x31", 'GB18030') # RIGHT-TO-LEFT MARK
+    
+    check_both_ways("\uE865", "\x83\x36\xD0\x30", 'GB18030') # No name (Private Use Area)
+    check_both_ways("\uF92B", "\x84\x30\x85\x34", 'GB18030') # E
+    
+    check_both_ways("\u2643", "\x81\x37\xA8\x39", 'GB18030') # 
+    check_both_ways("\u2E80", "\x81\x38\xFD\x38", 'GB18030') # ⺀
+    
+    check_both_ways("\uFA2A", "\x84\x30\x9C\x38", 'GB18030') # E
+    check_both_ways("\uFE2F", "\x84\x31\x85\x37", 'GB18030') # No name (Combining Half Marks)
+    
+    check_both_ways("\u3CE1", "\x82\x31\xD4\x38", 'GB18030') # 㳡
+    check_both_ways("\u4055", "\x82\x32\xAF\x32", 'GB18030') # 
+    
+    check_both_ways("\u361B", "\x82\x30\xA6\x33", 'GB18030') # 
+    check_both_ways("\u3917", "\x82\x30\xF2\x37", 'GB18030') # 
+    
+    check_both_ways("\u49B8", "\x82\x34\xA1\x31", 'GB18030') # 䦸
+    check_both_ways("\u4C76", "\x82\x34\xE7\x33", 'GB18030') # 䱶
+    
+    check_both_ways("\u4160", "\x82\x32\xC9\x37", 'GB18030') # 䅠
+    check_both_ways("\u4336", "\x82\x32\xF8\x37", 'GB18030') # 䌶
+    
+    check_both_ways("\u478E", "\x82\x33\xE8\x38", 'GB18030') # 
+    check_both_ways("\u4946", "\x82\x34\x96\x38", 'GB18030') # 
+    
+    check_both_ways("\u44D7", "\x82\x33\xA3\x39", 'GB18030') # 
+    check_both_ways("\u464B", "\x82\x33\xC9\x31", 'GB18030') # 
+    
+    check_both_ways("\uFFE6", "\x84\x31\xA2\x34", 'GB18030') # E
+    check_both_ways("\uFFFF", "\x84\x31\xA4\x39", 'GB18030') # not a character
+    
+    check_both_ways("\u{10000}", "\x90\x30\x81\x30", 'GB18030') # 𐀀
+    check_both_ways("\u{10FFFE}", "\xE3\x32\x9A\x34", 'GB18030') # No name (Not a character)
+    check_both_ways("\u{10FFFF}", "\xE3\x32\x9A\x35", 'GB18030') # No name (Not a character)
+  end
+
+  def test_Big5
+    check_both_ways("\u3000", "\xA1\x40", 'Big5') # full-width space
+    check_both_ways("\uFE5A", "\xA1\x7E", 'Big5') # ﹚
+    check_both_ways("\uFE5B", "\xA1\xA1", 'Big5') # ﹛
+    #check_both_ways("\uFF0F", "\xA1\xFE", 'Big5') # ／
+    check_both_ways("\uFF57", "\xA3\x40", 'Big5') # ｗ
+    check_both_ways("\u310F", "\xA3\x7E", 'Big5') # ㄏ
+    check_both_ways("\u3110", "\xA3\xA1", 'Big5') # ㄐ
+    check_both_ways("\u02CB", "\xA3\xBF", 'Big5') # ˋ
+    assert_raise(Encoding::UndefinedConversionError) { "\xA3\xC0".encode("utf-8", 'Big5') }
+    check_both_ways("\u6D6C", "\xAF\x40", 'Big5') # 浬
+    check_both_ways("\u7837", "\xAF\x7E", 'Big5') # 砷
+    check_both_ways("\u7825", "\xAF\xA1", 'Big5') # 砥
+    check_both_ways("\u8343", "\xAF\xFE", 'Big5') # 荃
+    check_both_ways("\u8654", "\xB0\x40", 'Big5') # 虔
+    check_both_ways("\u9661", "\xB0\x7E", 'Big5') # 陡
+    check_both_ways("\u965B", "\xB0\xA1", 'Big5') # 陛
+    check_both_ways("\u5A40", "\xB0\xFE", 'Big5') # 婀
+    check_both_ways("\u6FC3", "\xBF\x40", 'Big5') # 濃
+    check_both_ways("\u7E0A", "\xBF\x7E", 'Big5') # 縊
+    check_both_ways("\u7E11", "\xBF\xA1", 'Big5') # 縑
+    check_both_ways("\u931A", "\xBF\xFE", 'Big5') # 錚
+    check_both_ways("\u9310", "\xC0\x40", 'Big5') # 錐
+    check_both_ways("\u5687", "\xC0\x7E", 'Big5') # 嚇
+    check_both_ways("\u568F", "\xC0\xA1", 'Big5') # 嚏
+    check_both_ways("\u77AC", "\xC0\xFE", 'Big5') # 瞬
+    check_both_ways("\u8B96", "\xC6\x40", 'Big5') # 讖
+    check_both_ways("\u7C72", "\xC6\x7E", 'Big5') # 籲
+	#assert_raise(Encoding::UndefinedConversionError) { "\xC6\xA1".encode("utf-8", 'Big5') }
+    #assert_raise(Encoding::UndefinedConversionError) { "\xC7\x40".encode("utf-8", 'Big5') }
+    assert_raise(Encoding::UndefinedConversionError) { "\xC8\x40".encode("utf-8", 'Big5') }
+    check_both_ways("\u4E42", "\xC9\x40", 'Big5') # 乂
+    check_both_ways("\u6C15", "\xC9\x7E", 'Big5') # 氕
+    check_both_ways("\u6C36", "\xC9\xA1", 'Big5') # 氶
+    check_both_ways("\u6C4B", "\xC9\xFE", 'Big5') # 汋
+    check_both_ways("\u67DC", "\xCF\x40", 'Big5') # 柜
+    check_both_ways("\u6D42", "\xCF\x7E", 'Big5') # 浂
+    check_both_ways("\u6D01", "\xCF\xA1", 'Big5') # 洁
+    check_both_ways("\u7A80", "\xCF\xFE", 'Big5') # 窀
+    check_both_ways("\u7A7E", "\xD0\x40", 'Big5') # 穾
+    check_both_ways("\u82EA", "\xD0\x7E", 'Big5') # 苪
+    check_both_ways("\u82E4", "\xD0\xA1", 'Big5') # 苤
+    check_both_ways("\u54F1", "\xD0\xFE", 'Big5') # 哱
+    check_both_ways("\u7A1B", "\xDF\x40", 'Big5') # 稛
+    check_both_ways("\u816F", "\xDF\x7E", 'Big5') # 腯
+    check_both_ways("\u8144", "\xDF\xA1", 'Big5') # 腄
+    check_both_ways("\u89E4", "\xDF\xFE", 'Big5') # 觤
+    check_both_ways("\u89E1", "\xE0\x40", 'Big5') # 觡
+    check_both_ways("\u903F", "\xE0\x7E", 'Big5') # 逿
+    check_both_ways("\u9044", "\xE0\xA1", 'Big5') # 遄
+    check_both_ways("\u50E0", "\xE0\xFE", 'Big5') # 僠
+    check_both_ways("\u979E", "\xEF\x40", 'Big5') # 鞞
+    check_both_ways("\u9D30", "\xEF\x7E", 'Big5') # 鴰
+    check_both_ways("\u9D45", "\xEF\xA1", 'Big5') # 鵅
+    check_both_ways("\u7376", "\xEF\xFE", 'Big5') # 獶
+    check_both_ways("\u74B8", "\xF0\x40", 'Big5') # 璸
+    check_both_ways("\u81D2", "\xF0\x7E", 'Big5') # 臒
+    check_both_ways("\u81D0", "\xF0\xA1", 'Big5') # 臐
+    check_both_ways("\u8E67", "\xF0\xFE", 'Big5') # 蹧
+    check_both_ways("\u7E98", "\xF9\x40", 'Big5') # 纘
+    check_both_ways("\u9F0A", "\xF9\x7E", 'Big5') # 鼊
+    check_both_ways("\u9FA4", "\xF9\xA1", 'Big5') # 龤
+    check_both_ways("\u9F98", "\xF9\xD5", 'Big5') # 龘
+    assert_raise(Encoding::UndefinedConversionError) { "\xF9\xD6".encode("utf-8", 'Big5') }
+    check_both_ways("\u795E\u6797\u7FA9\u535A", "\xAF\xAB\xAA\x4C\xB8\x71\xB3\xD5", 'Big5') # 神林義博
+  end
+  
   def test_nothing_changed
     a = "James".force_encoding("US-ASCII")
     b = a.encode("Shift_JIS")

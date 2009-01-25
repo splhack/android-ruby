@@ -80,7 +80,11 @@ ENCCLEANOBJS =
 
 TRANSVPATH = $(srcdir)/enc/trans
 
-TRANSCSRCS = enc/trans/escape.c \
+TRANSCSRCS = enc/trans/big5.c \
+	     enc/trans/chinese.c \
+	     enc/trans/escape.c \
+	     enc/trans/gb18030.c \
+	     enc/trans/gbk.c \
 	     enc/trans/iso2022.c \
 	     enc/trans/japanese.c \
 	     enc/trans/japanese_euc.c \
@@ -116,8 +120,20 @@ srcs: $(TRANSCSRCS)
 $(ENCOBJS): regenc.h oniguruma.h config.h defines.h
 $(TRANSOBJS): ruby.h intern.h config.h defines.h missing.h encoding.h oniguruma.h st.h transcode_data.h
 
+enc/trans/big5.c: enc/trans/big5.trans
+enc/trans/big5.c: enc/trans/big5-tbl.rb $(srcdir)/tool/transcode-tblgen.rb
+
+enc/trans/chinese.c: enc/trans/chinese.trans
+enc/trans/chinese.c:  $(srcdir)/tool/transcode-tblgen.rb
+
 enc/trans/escape.c: enc/trans/escape.trans
 enc/trans/escape.c:  $(srcdir)/tool/transcode-tblgen.rb
+
+enc/trans/gb18030.c: enc/trans/gb18030.trans
+enc/trans/gb18030.c: enc/trans/gb18030-tbl.rb $(srcdir)/tool/transcode-tblgen.rb
+
+enc/trans/gbk.c: enc/trans/gbk.trans
+enc/trans/gbk.c: enc/trans/gbk-tbl.rb $(srcdir)/tool/transcode-tblgen.rb
 
 enc/trans/iso2022.c: enc/trans/iso2022.trans
 enc/trans/iso2022.c:  $(srcdir)/tool/transcode-tblgen.rb
@@ -295,9 +311,25 @@ $(ENCSODIR)/trans/transdb.$(DLEXT): enc/trans/transdb.$(OBJEXT)
 	@$(MAKEDIRS) "$(@D)"
 	$(LDSHARED) $@ enc/trans/transdb.$(OBJEXT) $(LIBPATH) $(DLDFLAGS) $(LOCAL_LIBS) $(LIBS)
 
+$(ENCSODIR)/trans/big5.$(DLEXT): enc/trans/big5.$(OBJEXT)
+	@$(MAKEDIRS) "$(@D)"
+	$(LDSHARED) $@ enc/trans/big5.$(OBJEXT) $(LIBPATH) $(DLDFLAGS) $(LOCAL_LIBS) $(LIBS)
+
+$(ENCSODIR)/trans/chinese.$(DLEXT): enc/trans/chinese.$(OBJEXT)
+	@$(MAKEDIRS) "$(@D)"
+	$(LDSHARED) $@ enc/trans/chinese.$(OBJEXT) $(LIBPATH) $(DLDFLAGS) $(LOCAL_LIBS) $(LIBS)
+
 $(ENCSODIR)/trans/escape.$(DLEXT): enc/trans/escape.$(OBJEXT)
 	@$(MAKEDIRS) "$(@D)"
 	$(LDSHARED) $@ enc/trans/escape.$(OBJEXT) $(LIBPATH) $(DLDFLAGS) $(LOCAL_LIBS) $(LIBS)
+
+$(ENCSODIR)/trans/gb18030.$(DLEXT): enc/trans/gb18030.$(OBJEXT)
+	@$(MAKEDIRS) "$(@D)"
+	$(LDSHARED) $@ enc/trans/gb18030.$(OBJEXT) $(LIBPATH) $(DLDFLAGS) $(LOCAL_LIBS) $(LIBS)
+
+$(ENCSODIR)/trans/gbk.$(DLEXT): enc/trans/gbk.$(OBJEXT)
+	@$(MAKEDIRS) "$(@D)"
+	$(LDSHARED) $@ enc/trans/gbk.$(OBJEXT) $(LIBPATH) $(DLDFLAGS) $(LOCAL_LIBS) $(LIBS)
 
 $(ENCSODIR)/trans/iso2022.$(DLEXT): enc/trans/iso2022.$(OBJEXT)
 	@$(MAKEDIRS) "$(@D)"
@@ -369,7 +401,11 @@ enc/utf_32be.$(OBJEXT): enc/utf_32be.c
 enc/utf_32le.$(OBJEXT): enc/utf_32le.c
 enc/windows_1251.$(OBJEXT): enc/windows_1251.c
 enc/trans/transdb.$(OBJEXT): enc/trans/transdb.c
+enc/trans/big5.$(OBJEXT): enc/trans/big5.c
+enc/trans/chinese.$(OBJEXT): enc/trans/chinese.c
 enc/trans/escape.$(OBJEXT): enc/trans/escape.c
+enc/trans/gb18030.$(OBJEXT): enc/trans/gb18030.c
+enc/trans/gbk.$(OBJEXT): enc/trans/gbk.c
 enc/trans/iso2022.$(OBJEXT): enc/trans/iso2022.c
 enc/trans/japanese.$(OBJEXT): enc/trans/japanese.c
 enc/trans/japanese_euc.$(OBJEXT): enc/trans/japanese_euc.c

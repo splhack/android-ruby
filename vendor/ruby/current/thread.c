@@ -14,7 +14,7 @@
   model 1: Userlevel Thread
     Same as traditional ruby thread.
 
-  model 2: Native Thread with Giant VM lock
+  model 2: Native Thread with Global VM lock
     Using pthread (or Windows thread) and Ruby threads run concurrent.
 
   model 3: Native Thread with fine grain lock
@@ -23,8 +23,8 @@
 ------------------------------------------------------------------------
 
   model 2:
-    A thread has mutex (GVL: Global VM Lock) can run.  When thread
-    scheduling, running thread release GVL.  If running thread
+    A thread has mutex (GVL: Global VM Lock or Giant VM Lock) can run.
+    When thread scheduling, running thread release GVL.  If running thread
     try blocking operation, this thread must release GVL and another
     thread can continue this flow.  After blocking operation, thread
     must check interrupt (RUBY_VM_CHECK_INTS).
@@ -69,6 +69,7 @@ static int rb_thread_dead(rb_thread_t *th);
 
 static void rb_check_deadlock(rb_vm_t *vm);
 
+int rb_signal_buff_size(void);
 void rb_signal_exec(rb_thread_t *th, int sig);
 void rb_disable_interrupt(void);
 void rb_thread_stop_timer_thread(void);
@@ -463,7 +464,7 @@ thread_start_func_2(rb_thread_t *th, VALUE *stack_start, VALUE *register_stack_s
     }
     thread_cleanup_func(th);
     if (th->vm->main_thread == th) {
-	rb_thread_stop_timer_thread();
+	ruby_cleanup(state);
     }
     native_mutex_unlock(&th->vm->global_vm_lock);
 
@@ -953,6 +954,7 @@ blocking_region_begin(rb_thread_t *th, struct rb_blocking_region_buffer *region,
 		      rb_unblock_function_t *func, void *arg)
 {
     region->prev_status = th->status;
+    th->blocking_region_buffer = region;
     set_unblock_function(th, func, arg, &region->oldubf);
     th->status = THREAD_STOPPED;
     thread_debug("enter blocking region (%p)\n", (void *)th);
@@ -967,6 +969,7 @@ blocking_region_end(rb_thread_t *th, struct rb_blocking_region_buffer *region)
     rb_thread_set_current(th);
     thread_debug("leave blocking region (%p)\n", (void *)th);
     remove_signal_thread_list(th);
+    th->blocking_region_buffer = 0;
     reset_unblock_function(th, &region->oldubf);
     if (th->status == THREAD_STOPPED) {
 	th->status = region->prev_status;
@@ -1014,8 +1017,7 @@ rb_thread_blocking_region_end(struct rb_blocking_region_buffer *region)
  *
  *   NOTE: You can not execute most of Ruby C API and touch Ruby objects
  *         in `func()' and `ubf()' because current thread doesn't acquire
- *         GVL (cause synchronization problem).  Especially, ALLOC*() are
- *         forbidden because they are related to GC.  If you need to do it,
+ *         GVL (cause synchronization problem).  If you need to do it,
  *         read source code of C APIs and confirm by yourself.
  *
  *   NOTE: In short, this API is difficult to use safely.  I recommend you
@@ -1024,6 +1026,8 @@ rb_thread_blocking_region_end(struct rb_blocking_region_buffer *region)
  *
  *   Safe C API:
  *     * rb_thread_interrupted() - check interrupt flag
+ *     * ruby_xalloc(), ruby_xrealloc(), ruby_xfree() - 
+ *         if they called without GVL, acquire GVL automatically.
  */
 VALUE
 rb_thread_blocking_region(
@@ -1057,6 +1061,11 @@ rb_thread_call_without_gvl(
 
 /*
  * rb_thread_call_with_gvl - re-enter into Ruby world while releasing GVL.
+ *
+ ***
+ *** This API is EXPERIMENTAL!
+ *** We do not guarantee that this API remains in ruby 1.9.2 or later.
+ ***
  *
  * While releasing GVL using rb_thread_blocking_region() or
  * rb_thread_call_without_gvl(), you can not access Ruby values or invoke methods.
@@ -1103,12 +1112,38 @@ rb_thread_call_with_gvl(void *(*func)(void *), void *data1)
     brb = (struct rb_blocking_region_buffer *)th->blocking_region_buffer;
     prev_unblock = th->unblock;
 
+    if (brb == 0) {
+	rb_bug("rb_thread_call_with_gvl: called by a thread which has GVL.");
+    }
+
     blocking_region_end(th, brb);
     /* enter to Ruby world: You can access Ruby values, methods and so on. */
     r = (*func)(data1);
     /* levae from Ruby world: You can not access Ruby values, etc. */
     blocking_region_begin(th, brb, prev_unblock.func, prev_unblock.arg);
     return r;
+}
+
+/*
+ * ruby_thread_has_gvl_p - check if current native thread has GVL.
+ *
+ ***
+ *** This API is EXPERIMENTAL!
+ *** We do not guarantee that this API remains in ruby 1.9.2 or later.
+ ***
+ */
+
+int
+ruby_thread_has_gvl_p(void)
+{
+    rb_thread_t *th = ruby_thread_from_native();
+
+    if (th && th->blocking_region_buffer == 0) {
+	return 1;
+    }
+    else {
+	return 0;
+    }
 }
 
 /*
@@ -1145,6 +1180,10 @@ thread_s_pass(VALUE klass)
 void
 rb_thread_execute_interrupts(rb_thread_t *th)
 {
+    if (GET_VM()->main_thread == th) {
+	while (rb_signal_buff_size() && !th->exec_signal) native_thread_yield();
+    }
+
     if (th->raised_flag) return;
 
     while (th->interrupt_flag) {
@@ -2082,7 +2121,7 @@ rb_thread_priority_set(VALUE thread, VALUE prio)
 #if defined(NFDBITS) && defined(HAVE_RB_FD_INIT)
 
 /*
- * several Unix platforms supports file descriptors bigger than FD_SETSIZE
+ * several Unix platforms support file descriptors bigger than FD_SETSIZE
  * in select(2) system call.
  *
  * - Linux 2.2.12 (?)
@@ -2198,6 +2237,52 @@ rb_fd_select(int n, rb_fdset_t *readfds, rb_fdset_t *writefds, rb_fdset_t *excep
         e = rb_fd_ptr(exceptfds);
     }
     return select(n, r, w, e, timeout);
+}
+
+#undef FD_ZERO
+#undef FD_SET
+#undef FD_CLR
+#undef FD_ISSET
+
+#define FD_ZERO(f)	rb_fd_zero(f)
+#define FD_SET(i, f)	rb_fd_set(i, f)
+#define FD_CLR(i, f)	rb_fd_clr(i, f)
+#define FD_ISSET(i, f)	rb_fd_isset(i, f)
+
+#elif defined(_WIN32)
+
+void
+rb_fd_init(volatile rb_fdset_t *set)
+{
+    set->capa = FD_SETSIZE;
+    set->fdset = ALLOC(fd_set);
+    FD_ZERO(set->fdset);
+}
+
+void
+rb_fd_term(rb_fdset_t *set)
+{
+    xfree(set->fdset);
+    set->fdset = NULL;
+    set->capa = 0;
+}
+
+void
+rb_fd_set(int fd, rb_fdset_t *set)
+{
+    unsigned int i;
+    SOCKET s = rb_w32_get_osfhandle(fd);
+
+    for (i = 0; i < set->fdset->fd_count; i++) {
+        if (set->fdset->fd_array[i] == s) {
+            return;
+        }
+    }
+    if (set->fdset->fd_count >= set->capa) {
+	set->capa = (set->fdset->fd_count / FD_SETSIZE + 1) * FD_SETSIZE;
+	set->fdset = xrealloc(set->fdset, sizeof(unsigned int) + sizeof(SOCKET) * set->capa);
+    }
+    set->fdset->fd_array[set->fdset->fd_count++] = s;
 }
 
 #undef FD_ZERO
@@ -2438,13 +2523,14 @@ timer_thread_function(void *arg)
 {
     rb_vm_t *vm = GET_VM(); /* TODO: fix me for Multi-VM */
     int sig;
+    rb_thread_t *mth;
 
     /* for time slice */
     RUBY_VM_SET_TIMER_INTERRUPT(vm->running_thread);
 
     /* check signal */
-    if ((sig = rb_get_next_signal()) > 0) {
-	rb_thread_t *mth = vm->main_thread;
+    mth = vm->main_thread;
+    if (!mth->exec_signal && (sig = rb_get_next_signal()) > 0) {
 	enum rb_thread_status prev_status = mth->status;
 	thread_debug("main_thread: %s, sig: %d\n",
 		     thread_status_name(prev_status), sig);
@@ -3511,8 +3597,9 @@ static VALUE
 call_trace_proc(VALUE args, int tracing)
 {
     struct call_trace_func_args *p = (struct call_trace_func_args *)args;
+    const char *srcfile = rb_sourcefile();
     VALUE eventname = rb_str_new2(get_event_name(p->event));
-    VALUE filename = rb_str_new2(rb_sourcefile());
+    VALUE filename = srcfile ? rb_str_new2(srcfile) : Qnil;
     VALUE argv[6];
     int line = rb_sourceline();
     ID id = 0;
@@ -3541,7 +3628,7 @@ call_trace_proc(VALUE args, int tracing)
     argv[1] = filename;
     argv[2] = INT2FIX(line);
     argv[3] = id ? ID2SYM(id) : Qnil;
-    argv[4] = p->self ? rb_binding_new() : Qnil;
+    argv[4] = (p->self && srcfile) ? rb_binding_new() : Qnil;
     argv[5] = klass ? klass : Qnil;
 
     return rb_proc_call_with_block(p->proc, 6, argv, Qnil);
@@ -3686,7 +3773,7 @@ Init_Thread(void)
     {
 	/* main thread setting */
 	{
-	    /* acquire global interpreter lock */
+	    /* acquire global vm lock */
 	    rb_thread_lock_t *lp = &GET_THREAD()->vm->global_vm_lock;
 	    native_mutex_initialize(lp);
 	    native_mutex_lock(lp);

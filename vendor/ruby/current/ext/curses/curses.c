@@ -1,5 +1,5 @@
 /* -*- C -*-
- * $Id: curses.c 20507 2008-12-04 08:56:02Z yugui $
+ * $Id: curses.c 21399 2009-01-09 02:18:20Z yugui $
  *
  * ext/curses/curses.c
  * 
@@ -94,7 +94,7 @@ free_window(struct windata *winp)
 {
     if (winp->window && winp->window != stdscr) delwin(winp->window);
     winp->window = 0;
-    free(winp);
+    xfree(winp);
 }
 
 static VALUE

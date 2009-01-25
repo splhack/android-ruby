@@ -39,6 +39,9 @@
  */
 
 #include "ruby/config.h"
+#ifdef RUBY_EXTCONF_H
+#include RUBY_EXTCONF_H
+#endif
 #include <sys/types.h>
 #ifndef _WIN32
 #include <sys/param.h>
@@ -64,6 +67,7 @@
 #include <unistd.h>
 #else
 #include <winsock2.h>
+#include <ws2tcpip.h>
 #include <io.h>
 #endif
 #include <string.h>
@@ -194,8 +198,8 @@ if (pai->ai_flags & AI_CANONNAME) {\
 
 #define ERR(err) { error = (err); goto bad; }
 
-#ifndef __HAIKU__
-#if defined __UCLIBC__
+#ifndef HAVE_GAI_STRERROR
+#ifdef GAI_STRERROR_CONST
 const
 #endif
 char *

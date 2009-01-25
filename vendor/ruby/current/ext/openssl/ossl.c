@@ -1,5 +1,5 @@
 /*
- * $Id: ossl.c 18459 2008-08-09 23:15:08Z nobu $
+ * $Id: ossl.c 21562 2009-01-15 15:39:30Z yugui $
  * 'OpenSSL for Ruby' project
  * Copyright (C) 2001-2002  Michal Rokos <m.rokos@sh.cvut.cz>
  * All rights reserved.
@@ -296,8 +296,7 @@ ossl_raise(VALUE exc, const char *fmt, ...)
 	    msg = ERR_error_string(e, NULL);
 	else
 	    msg = ERR_reason_error_string(e);
-	fmt = len ? ": %s" : "%s";
-	len += snprintf(buf+len, BUFSIZ-len, fmt, msg);
+	len += snprintf(buf+len, BUFSIZ-len, "%s%s", (len ? ": " : ""), msg);
     }
     if (dOSSL == Qtrue){ /* show all errors on the stack */
 	while ((e = ERR_get_error()) != 0){

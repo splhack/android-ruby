@@ -2,7 +2,7 @@
 
   sockport.h -
 
-  $Author: akr $
+  $Author: yugui $
   created at: Fri Apr 30 23:19:34 JST 1999
 
 ************************************************/
@@ -14,7 +14,7 @@
 # ifdef HAVE_SA_LEN
 #  define SA_LEN(sa) (sa)->sa_len
 # else
-#  ifdef INET6
+#  ifdef AF_INET6
 #   define SA_LEN(sa) \
 	(((sa)->sa_family == AF_INET6) ? sizeof(struct sockaddr_in6) \
 				       : sizeof(struct sockaddr))

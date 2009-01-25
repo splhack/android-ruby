@@ -1,5 +1,7 @@
 #!/usr/bin/env ruby
 
+ENV.delete('PWD')
+
 require 'optparse'
 require 'pathname'
 
@@ -9,19 +11,27 @@ class VCSNotFoundError < RuntimeError; end
 def detect_vcs(path)
   path = SRCDIR
   return :svn, path.relative_path_from(SRCDIR) if File.directory?("#{path}/.svn")
+  return :git_svn, path.relative_path_from(SRCDIR) if File.directory?("#{path}/.git/svn")
   return :git, path.relative_path_from(SRCDIR) if File.directory?("#{path}/.git")
   raise VCSNotFoundError, "does not seem to be under a vcs"
 end
 
+# return a pair of strings, the last revision and the last revision in which
+# +path+ was modified.
 def get_revisions(path)
-  ENV['LANG'] = ENV['LC_ALL'] = ENV['LC_MESSAGES'] = 'C'
   vcs, path = detect_vcs(path)
 
   info = case vcs
   when :svn
-    `cd "#{SRCDIR}" && svn info "#{path}"`
-  when :git
+    info_xml = `cd "#{SRCDIR}" && svn info --xml "#{path}"`
+    _, last, _, changed, _ = info_xml.split(/revision="(\d+)"/)
+    return last, changed
+  when :git_svn
     `cd "#{SRCDIR}" && git svn info "#{path}"`
+  when :git
+    git_log = `cd "#{SRCDIR}" && git log HEAD~1..HEAD "#{path}"`
+    git_log =~ /git-svn-id: .*?@(\d+)/
+    return $1, $1
   end
 
   if /^Revision: (\d+)/ =~ info
@@ -72,7 +82,7 @@ case $output
 when :changed, nil
   puts changed
 when :revision_h
-  puts "#define RUBY_REVISION #{changed}"
+  puts "#define RUBY_REVISION #{changed.to_i}"
 when :doxygen
   puts "r#{changed}/r#{last}"
 else

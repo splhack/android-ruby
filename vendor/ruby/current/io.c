@@ -281,6 +281,12 @@ rb_io_get_write_io(VALUE io)
  *
  *     IO.try_convert(STDOUT)     # => STDOUT
  *     IO.try_convert("STDOUT")   # => nil
+ *
+ *     require 'zlib'
+ *     f = open("/tmp/zz.gz")       # => #<File:/tmp/zz.gz>
+ *     z = Zlib::GzipReader.open(f) # => #<Zlib::GzipReader:0x81d8744>
+ *     IO.try_convert(z)            # => #<File:/tmp/zz.gz>
+ *
  */
 static VALUE
 rb_io_s_try_convert(VALUE dummy, VALUE io)
@@ -624,7 +630,7 @@ rb_io_wait_readable(int f)
 	rb_ensure(wait_readable, (VALUE)&rfds,
 		  (VALUE (*)(VALUE))rb_fd_term, (VALUE)&rfds);
 #else
-	rb_thread_select(f + 1, &rfds, NULL, NULL, NULL);
+	rb_thread_select(f + 1, rb_fd_ptr(&rfds), NULL, NULL, NULL);
 #endif
 	return Qtrue;
 
@@ -669,7 +675,7 @@ rb_io_wait_writable(int f)
 	rb_ensure(wait_writable, (VALUE)&wfds,
 		  (VALUE (*)(VALUE))rb_fd_term, (VALUE)&wfds);
 #else
-	rb_thread_select(f + 1, NULL, &wfds, NULL, NULL);
+	rb_thread_select(f + 1, NULL, rb_fd_ptr(&wfds), NULL, NULL);
 #endif
 	return Qtrue;
 
@@ -1996,7 +2002,7 @@ appendline(rb_io_t *fptr, int delim, VALUE *strp, long *lp)
 
     if (NEED_READCONV(fptr)) {
         make_readconv(fptr, 0);
-        while (1) {
+        do {
             const char *p, *e;
             int searchlen;
             if (fptr->cbuf_len) {
@@ -2030,15 +2036,12 @@ appendline(rb_io_t *fptr, int delim, VALUE *strp, long *lp)
                     return (unsigned char)RSTRING_PTR(str)[RSTRING_LEN(str)-1];
                 }
             }
-
-            if (more_char(fptr) == -1) {
-                *lp = limit;
-                return EOF;
-            }
-        }
+        } while (more_char(fptr) != -1);
+        *lp = limit;
+        return EOF;
     }
 
-    while (1) {
+    do {
 	long pending = READ_DATA_PENDING_COUNT(fptr);
 	if (pending > 0) {
 	    const char *p = READ_DATA_PENDING_PTR(fptr);
@@ -2062,15 +2065,13 @@ appendline(rb_io_t *fptr, int delim, VALUE *strp, long *lp)
 	    *lp = limit;
 	    if (e) return delim;
 	    if (limit == 0)
-              return (unsigned char)RSTRING_PTR(str)[RSTRING_LEN(str)-1];
+		return (unsigned char)RSTRING_PTR(str)[RSTRING_LEN(str)-1];
 	}
 	rb_thread_wait_fd(fptr->fd);
 	rb_io_check_closed(fptr);
-	if (io_fillbuf(fptr) < 0) {
-	    *lp = limit;
-	    return EOF;
-	}
-    }
+    } while (io_fillbuf(fptr) >= 0);
+    *lp = limit;
+    return EOF;
 }
 
 static inline int
@@ -3358,7 +3359,7 @@ rb_io_close_read(VALUE io)
     write_io = GetWriteIO(io);
     if (io != write_io) {
 	rb_io_t *wfptr;
-        fptr_finalize(fptr, Qfalse);
+        rb_io_fptr_cleanup(fptr, Qfalse);
 	GetOpenFile(write_io, wfptr);
         RFILE(io)->fptr = wfptr;
         RFILE(write_io)->fptr = NULL;
@@ -5218,6 +5219,10 @@ io_reopen(VALUE io, VALUE nfile)
     if (orig->pathv) fptr->pathv = orig->pathv;
     else fptr->pathv = Qnil;
     fptr->finalize = orig->finalize;
+#if defined (__CYGWIN__) || !defined(HAVE_FORK)
+    if (fptr->finalize == pipe_finalize)
+	pipe_add_fptr(fptr);
+#endif
 
     fd = fptr->fd;
     fd2 = orig->fd;
@@ -5369,6 +5374,10 @@ rb_io_init_copy(VALUE dest, VALUE io)
     fptr->lineno = orig->lineno;
     if (!NIL_P(orig->pathv)) fptr->pathv = orig->pathv;
     fptr->finalize = orig->finalize;
+#if defined (__CYGWIN__) || !defined(HAVE_FORK)
+    if (fptr->finalize == pipe_finalize)
+	pipe_add_fptr(fptr);
+#endif
 
     fd = ruby_dup(orig->fd);
     fptr->fd = fd;
@@ -5922,6 +5931,12 @@ rb_io_initialize(int argc, VALUE *argv, VALUE io)
     fp->encs = convconfig;
     clear_codeconv(fp);
     io_check_tty(fp);
+    if (fileno(stdin) == fd)
+	fp->stdio_file = stdin;
+    else if (fileno(stdout) == fd)
+	fp->stdio_file = stdout;
+    else if (fileno(stderr) == fd)
+	fp->stdio_file = stderr;
 
     return io;
 }
@@ -7290,7 +7305,7 @@ struct copy_stream_struct {
 };
 
 static int
-copy_stream_wait_read(struct copy_stream_struct *stp)
+maygvl_copy_stream_wait_read(struct copy_stream_struct *stp)
 {
     int ret;
     rb_fd_zero(&stp->fds);
@@ -7305,7 +7320,7 @@ copy_stream_wait_read(struct copy_stream_struct *stp)
 }
 
 static int
-copy_stream_wait_write(struct copy_stream_struct *stp)
+nogvl_copy_stream_wait_write(struct copy_stream_struct *stp)
 {
     int ret;
     rb_fd_zero(&stp->fds);
@@ -7340,7 +7355,7 @@ simple_sendfile(int out_fd, int in_fd, off_t *offset, size_t count)
 
 #ifdef USE_SENDFILE
 static int
-copy_stream_sendfile(struct copy_stream_struct *stp)
+nogvl_copy_stream_sendfile(struct copy_stream_struct *stp)
 {
     struct stat src_stat, dst_stat;
     ssize_t ss;
@@ -7412,7 +7427,7 @@ copy_stream_sendfile(struct copy_stream_struct *stp)
 #if defined(EWOULDBLOCK) && EWOULDBLOCK != EAGAIN
 	  case EWOULDBLOCK:
 #endif
-            if (copy_stream_wait_write(stp) == -1)
+            if (nogvl_copy_stream_wait_write(stp) == -1)
                 return -1;
             if (rb_thread_interrupted(stp->th))
                 return -1;
@@ -7427,7 +7442,7 @@ copy_stream_sendfile(struct copy_stream_struct *stp)
 #endif
 
 static ssize_t
-copy_stream_read(struct copy_stream_struct *stp, char *buf, int len, off_t offset)
+maygvl_copy_stream_read(struct copy_stream_struct *stp, char *buf, int len, off_t offset)
 {
     ssize_t ss;
   retry_read:
@@ -7450,7 +7465,7 @@ copy_stream_read(struct copy_stream_struct *stp, char *buf, int len, off_t offse
 #if defined(EWOULDBLOCK) && EWOULDBLOCK != EAGAIN
 	  case EWOULDBLOCK:
 #endif
-            if (copy_stream_wait_read(stp) == -1)
+            if (maygvl_copy_stream_wait_read(stp) == -1)
                 return -1;
             goto retry_read;
 #ifdef ENOSYS
@@ -7467,7 +7482,7 @@ copy_stream_read(struct copy_stream_struct *stp, char *buf, int len, off_t offse
 }
 
 static int
-copy_stream_write(struct copy_stream_struct *stp, char *buf, int len)
+nogvl_copy_stream_write(struct copy_stream_struct *stp, char *buf, int len)
 {
     ssize_t ss;
     int off = 0;
@@ -7475,7 +7490,7 @@ copy_stream_write(struct copy_stream_struct *stp, char *buf, int len)
         ss = write(stp->dst_fd, buf+off, len);
         if (ss == -1) {
             if (errno == EAGAIN || errno == EWOULDBLOCK) {
-                if (copy_stream_wait_write(stp) == -1)
+                if (nogvl_copy_stream_wait_write(stp) == -1)
                     return -1;
                 continue;
             }
@@ -7491,7 +7506,7 @@ copy_stream_write(struct copy_stream_struct *stp, char *buf, int len)
 }
 
 static void
-copy_stream_read_write(struct copy_stream_struct *stp)
+nogvl_copy_stream_read_write(struct copy_stream_struct *stp)
 {
     char buf[1024*16];
     int len;
@@ -7527,17 +7542,17 @@ copy_stream_read_write(struct copy_stream_struct *stp)
             len = sizeof(buf);
         }
         if (use_pread) {
-            ss = copy_stream_read(stp, buf, len, src_offset);
+            ss = maygvl_copy_stream_read(stp, buf, len, src_offset);
             if (0 < ss)
                 src_offset += ss;
         }
         else {
-            ss = copy_stream_read(stp, buf, len, (off_t)-1);
+            ss = maygvl_copy_stream_read(stp, buf, len, (off_t)-1);
         }
         if (ss <= 0) /* EOF or error */
             return;
 
-        ret = copy_stream_write(stp, buf, ss);
+        ret = nogvl_copy_stream_write(stp, buf, ss);
         if (ret < 0)
             return;
 
@@ -7550,7 +7565,7 @@ copy_stream_read_write(struct copy_stream_struct *stp)
 }
 
 static VALUE
-copy_stream_func(void *arg)
+nogvl_copy_stream_func(void *arg)
 {
     struct copy_stream_struct *stp = (struct copy_stream_struct *)arg;
 #ifdef USE_SENDFILE
@@ -7558,12 +7573,12 @@ copy_stream_func(void *arg)
 #endif
 
 #ifdef USE_SENDFILE
-    ret = copy_stream_sendfile(stp);
+    ret = nogvl_copy_stream_sendfile(stp);
     if (ret != 0)
         goto finish; /* error or success */
 #endif
 
-    copy_stream_read_write(stp);
+    nogvl_copy_stream_read_write(stp);
 
 #ifdef USE_SENDFILE
   finish:
@@ -7606,7 +7621,7 @@ copy_stream_fallback_body(VALUE arg)
             ssize_t ss;
             rb_thread_wait_fd(stp->src_fd);
             rb_str_resize(buf, buflen);
-            ss = copy_stream_read(stp, RSTRING_PTR(buf), l, off);
+            ss = maygvl_copy_stream_read(stp, RSTRING_PTR(buf), l, off);
             if (ss == -1)
                 return Qnil;
             if (ss == 0)
@@ -7653,13 +7668,12 @@ copy_stream_body(VALUE arg)
 
     if (stp->src == argf ||
         !(TYPE(stp->src) == T_FILE ||
-          rb_respond_to(stp->src, rb_intern("to_io")) ||
           TYPE(stp->src) == T_STRING ||
           rb_respond_to(stp->src, rb_intern("to_path")))) {
         src_fd = -1;
     }
     else {
-        src_io = rb_check_convert_type(stp->src, T_FILE, "IO", "to_io");
+        src_io = TYPE(stp->src) == T_FILE ? stp->src : Qnil;
         if (NIL_P(src_io)) {
             VALUE args[2];
             int oflags = O_RDONLY;
@@ -7681,13 +7695,12 @@ copy_stream_body(VALUE arg)
 
     if (stp->dst == argf ||
         !(TYPE(stp->dst) == T_FILE ||
-          rb_respond_to(stp->dst, rb_intern("to_io")) ||
           TYPE(stp->dst) == T_STRING ||
           rb_respond_to(stp->dst, rb_intern("to_path")))) {
         dst_fd = -1;
     }
     else {
-        dst_io = rb_check_convert_type(stp->dst, T_FILE, "IO", "to_io");
+        dst_io = TYPE(stp->dst) == T_FILE ? stp->dst : Qnil;
         if (NIL_P(dst_io)) {
             VALUE args[3];
             int oflags = O_WRONLY|O_CREAT|O_TRUNC;
@@ -7747,7 +7760,7 @@ copy_stream_body(VALUE arg)
     rb_fd_set(src_fd, &stp->fds);
     rb_fd_set(dst_fd, &stp->fds);
 
-    return rb_thread_blocking_region(copy_stream_func, (void*)stp, RUBY_UBF_IO, 0);
+    return rb_thread_blocking_region(nogvl_copy_stream_func, (void*)stp, RUBY_UBF_IO, 0);
 }
 
 static VALUE
