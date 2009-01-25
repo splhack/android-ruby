@@ -953,7 +953,7 @@ include $(BUILD_SHARED_LIBRARY)
 
 # ------------------------------------------------------------------------------
 include $(CLEAR_VARS)
-LOCAL_MODULE:= ruby
+LOCAL_MODULE:= cruby
 LOCAL_SRC_FILES:= $(RUBY_TOP)/main.c
 LOCAL_SHARED_LIBRARIES:= libruby
 LOCAL_C_INCLUDES+= $(RUBY_C_INCLUDE)
