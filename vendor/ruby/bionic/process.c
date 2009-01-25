@@ -1097,7 +1097,11 @@ rb_proc_exec(const char *str)
 		exit(status);
 #else
 	    before_exec();
+# if defined(__BIONIC__)
+	    execl("/system/bin/sh", "sh", "-c", str, (char *)NULL);
+# else
 	    execl("/bin/sh", "sh", "-c", str, (char *)NULL);
+# endif
 	    preserving_errno(after_exec());
 #endif
 	    return -1;

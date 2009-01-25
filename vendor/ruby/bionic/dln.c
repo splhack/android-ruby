@@ -1482,6 +1482,8 @@ dln_find_exe_r(const char *fname, const char *path, char *buf, int size)
     if (!path) {
 #if defined(_WIN32)
 	path = "/usr/local/bin;/usr/ucb;/usr/bin;/bin;.";
+#elif defined(__BIONIC__)
+	path = "/system/xbin:/system/bin:.";
 #else
 	path = "/usr/local/bin:/usr/ucb:/usr/bin:/bin:.";
 #endif

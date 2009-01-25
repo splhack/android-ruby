@@ -21277,7 +21277,10 @@ linux* | gnu* | k*bsd*-gnu | bsdi*)
     if test "$rb_cv_binary_elf" = no; then
 	with_dln_a_out=yes
     else
-	LDFLAGS="$LDFLAGS -rdynamic"
+	case "$target_vendor" in
+	android) ;;
+	*) LDFLAGS="$LDFLAGS -rdynamic" ;;
+	esac
     fi;;
 esac
 LIBEXT=a

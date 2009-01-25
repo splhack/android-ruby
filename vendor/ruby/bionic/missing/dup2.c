@@ -41,7 +41,9 @@ dup2(int fd1, int fd2)
 	}
 	return fd2;
 #else
+#ifndef __BIONIC__
 	extern int errno;
+#endif
 	int i, fd, fds[256];
 
 	if (fd1 == fd2) return 0;

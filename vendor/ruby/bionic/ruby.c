@@ -163,6 +163,10 @@ usage(const char *name)
 
 VALUE rb_get_load_path(void);
 
+#ifdef __BIONIC__
+#define mblen(a,b) 1
+#endif
+
 #ifndef CharNext		/* defined as CharNext[AW] on Windows. */
 #define CharNext(p) ((p) + mblen(p, RUBY_MBCHAR_MAXSIZE))
 #endif

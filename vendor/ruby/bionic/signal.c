@@ -404,7 +404,7 @@ static struct {
     rb_atomic_t size;
 } signal_buff;
 
-#ifdef __dietlibc__
+#if defined(__dietlibc__) || defined(__BIONIC__)
 #define sighandler_t sh_t
 #endif
 

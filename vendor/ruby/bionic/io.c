@@ -4459,7 +4459,7 @@ pipe_open(struct rb_exec_arg *eargp, VALUE prog, const char *modestr, int fmode,
 #if defined(HAVE_FORK)
     int status;
     struct popen_arg arg;
-#elif defined(_WIN32)
+#else
     volatile VALUE argbuf;
     char **args = NULL;
     struct rb_exec_arg sarg;
