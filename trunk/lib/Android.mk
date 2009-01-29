@@ -568,7 +568,7 @@ include $(BUILD_SHARED_LIBRARY)
 
 # ------------------------------------------------------------------------------
 include $(CLEAR_VARS)
-LOCAL_MODULE:= ruby/ext/bigdecimal
+LOCAL_MODULE:= ruby/bigdecimal
 LOCAL_SRC_FILES:= $(RUBY_TOP)/ext/bigdecimal/bigdecimal.c
 LOCAL_SHARED_LIBRARIES:= libruby
 LOCAL_C_INCLUDES+= $(RUBY_C_INCLUDE) $(LOCAL_PATH)/$(RUBY_TOP)/ext/bigdecimal
@@ -578,7 +578,7 @@ include $(BUILD_SHARED_LIBRARY)
 
 # ------------------------------------------------------------------------------
 include $(CLEAR_VARS)
-LOCAL_MODULE:= ruby/ext/continuation
+LOCAL_MODULE:= ruby/continuation
 LOCAL_SRC_FILES:= $(RUBY_TOP)/ext/continuation/continuation.c
 LOCAL_SHARED_LIBRARIES:= libruby
 LOCAL_C_INCLUDES+= $(RUBY_C_INCLUDE) $(LOCAL_PATH)/$(RUBY_TOP)/ext/continuation
@@ -588,7 +588,7 @@ include $(BUILD_SHARED_LIBRARY)
 
 # ------------------------------------------------------------------------------
 include $(CLEAR_VARS)
-LOCAL_MODULE:= ruby/ext/coverage
+LOCAL_MODULE:= ruby/coverage
 LOCAL_SRC_FILES:= $(RUBY_TOP)/ext/coverage/coverage.c
 LOCAL_SHARED_LIBRARIES:= libruby
 LOCAL_C_INCLUDES+= $(RUBY_C_INCLUDE) $(LOCAL_PATH)/$(RUBY_TOP)/ext/coverage
@@ -598,7 +598,7 @@ include $(BUILD_SHARED_LIBRARY)
 
 # ------------------------------------------------------------------------------
 include $(CLEAR_VARS)
-LOCAL_MODULE:= ruby/ext/digest
+LOCAL_MODULE:= ruby/digest
 LOCAL_SRC_FILES:= $(RUBY_TOP)/ext/digest/digest.c
 LOCAL_SHARED_LIBRARIES:= libruby
 LOCAL_C_INCLUDES+= $(RUBY_C_INCLUDE) $(LOCAL_PATH)/$(RUBY_TOP)/ext/digest
@@ -608,7 +608,7 @@ include $(BUILD_SHARED_LIBRARY)
 
 # ------------------------------------------------------------------------------
 include $(CLEAR_VARS)
-LOCAL_MODULE:= ruby/ext/digest/bubblebabble
+LOCAL_MODULE:= ruby/digest/bubblebabble
 LOCAL_SRC_FILES:= $(RUBY_TOP)/ext/digest/bubblebabble/bubblebabble.c
 LOCAL_SHARED_LIBRARIES:= libruby
 LOCAL_C_INCLUDES+= $(RUBY_C_INCLUDE) \
@@ -620,7 +620,7 @@ include $(BUILD_SHARED_LIBRARY)
 
 # ------------------------------------------------------------------------------
 include $(CLEAR_VARS)
-LOCAL_MODULE:= ruby/ext/digest/md5
+LOCAL_MODULE:= ruby/digest/md5
 LOCAL_SRC_FILES:= \
 	$(RUBY_TOP)/ext/digest/md5/md5init.c \
 	$(RUBY_TOP)/ext/digest/md5/md5ossl.c
@@ -634,7 +634,7 @@ include $(BUILD_SHARED_LIBRARY)
 
 # ------------------------------------------------------------------------------
 include $(CLEAR_VARS)
-LOCAL_MODULE:= ruby/ext/digest/rmd160
+LOCAL_MODULE:= ruby/digest/rmd160
 LOCAL_SRC_FILES:= \
 	$(RUBY_TOP)/ext/digest/rmd160/rmd160init.c \
 	$(RUBY_TOP)/ext/digest/rmd160/rmd160ossl.c
@@ -648,7 +648,7 @@ include $(BUILD_SHARED_LIBRARY)
 
 # ------------------------------------------------------------------------------
 include $(CLEAR_VARS)
-LOCAL_MODULE:= ruby/ext/digest/sha1
+LOCAL_MODULE:= ruby/digest/sha1
 LOCAL_SRC_FILES:= \
 	$(RUBY_TOP)/ext/digest/sha1/sha1init.c \
 	$(RUBY_TOP)/ext/digest/sha1/sha1ossl.c
@@ -662,7 +662,7 @@ include $(BUILD_SHARED_LIBRARY)
 
 # ------------------------------------------------------------------------------
 include $(CLEAR_VARS)
-LOCAL_MODULE:= ruby/ext/digest/sha2
+LOCAL_MODULE:= ruby/digest/sha2
 LOCAL_SRC_FILES:= \
 	$(RUBY_TOP)/ext/digest/sha2/sha2.c \
 	$(RUBY_TOP)/ext/digest/sha2/sha2init.c
@@ -676,7 +676,7 @@ include $(BUILD_SHARED_LIBRARY)
 
 # ------------------------------------------------------------------------------
 include $(CLEAR_VARS)
-LOCAL_MODULE:= ruby/ext/dl
+LOCAL_MODULE:= ruby/dl
 LOCAL_SRC_FILES:= \
 	$(RUBY_TOP)/ext/dl/cfunc.c \
 	$(RUBY_TOP)/ext/dl/dl.c \
@@ -699,7 +699,7 @@ include $(BUILD_SHARED_LIBRARY)
 
 # ------------------------------------------------------------------------------
 include $(CLEAR_VARS)
-LOCAL_MODULE:= ruby/ext/etc
+LOCAL_MODULE:= ruby/etc
 LOCAL_SRC_FILES:= $(RUBY_TOP)/ext/etc/etc.c
 LOCAL_SHARED_LIBRARIES:= libruby
 LOCAL_C_INCLUDES+= $(RUBY_C_INCLUDE) $(LOCAL_PATH)/$(RUBY_TOP)/ext/etc
@@ -709,7 +709,7 @@ include $(BUILD_SHARED_LIBRARY)
 
 # ------------------------------------------------------------------------------
 include $(CLEAR_VARS)
-LOCAL_MODULE:= ruby/ext/fcntl
+LOCAL_MODULE:= ruby/fcntl
 LOCAL_SRC_FILES:= $(RUBY_TOP)/ext/fcntl/fcntl.c
 LOCAL_SHARED_LIBRARIES:= libruby
 LOCAL_C_INCLUDES+= $(RUBY_C_INCLUDE) $(LOCAL_PATH)/$(RUBY_TOP)/ext/fcntl
@@ -719,7 +719,7 @@ include $(BUILD_SHARED_LIBRARY)
 
 # ------------------------------------------------------------------------------
 include $(CLEAR_VARS)
-LOCAL_MODULE:= ruby/ext/fiber
+LOCAL_MODULE:= ruby/fiber
 LOCAL_SRC_FILES:= $(RUBY_TOP)/ext/fiber/fiber.c
 LOCAL_SHARED_LIBRARIES:= libruby
 LOCAL_C_INCLUDES+= $(RUBY_C_INCLUDE) $(LOCAL_PATH)/$(RUBY_TOP)/ext/fiber
@@ -729,7 +729,7 @@ include $(BUILD_SHARED_LIBRARY)
 
 # ------------------------------------------------------------------------------
 include $(CLEAR_VARS)
-LOCAL_MODULE:= ruby/ext/io/wait
+LOCAL_MODULE:= ruby/io/wait
 LOCAL_SRC_FILES:= $(RUBY_TOP)/ext/io/wait/wait.c
 LOCAL_SHARED_LIBRARIES:= libruby
 LOCAL_C_INCLUDES+= $(RUBY_C_INCLUDE) $(LOCAL_PATH)/$(RUBY_TOP)/ext/io/wait
@@ -739,7 +739,7 @@ include $(BUILD_SHARED_LIBRARY)
 
 # ------------------------------------------------------------------------------
 include $(CLEAR_VARS)
-LOCAL_MODULE:= ruby/ext/json/ext/generator
+LOCAL_MODULE:= ruby/json/ext/generator
 LOCAL_SRC_FILES:= \
 	$(RUBY_TOP)/ext/json/ext/generator/unicode.c \
 	$(RUBY_TOP)/ext/json/ext/generator/generator.c
@@ -752,7 +752,7 @@ include $(BUILD_SHARED_LIBRARY)
 
 # ------------------------------------------------------------------------------
 include $(CLEAR_VARS)
-LOCAL_MODULE:= ruby/ext/json/ext/parser
+LOCAL_MODULE:= ruby/json/ext/parser
 LOCAL_SRC_FILES:= \
 	$(RUBY_TOP)/ext/json/ext/parser/parser.c \
 	$(RUBY_TOP)/ext/json/ext/parser/unicode.c
@@ -765,7 +765,7 @@ include $(BUILD_SHARED_LIBRARY)
 
 # ------------------------------------------------------------------------------
 include $(CLEAR_VARS)
-LOCAL_MODULE:= ruby/ext/mathn/complex
+LOCAL_MODULE:= ruby/mathn/complex
 LOCAL_SRC_FILES:= $(RUBY_TOP)/ext/mathn/complex/complex.c
 LOCAL_SHARED_LIBRARIES:= libruby
 LOCAL_C_INCLUDES+= $(RUBY_C_INCLUDE) \
@@ -776,7 +776,7 @@ include $(BUILD_SHARED_LIBRARY)
 
 # ------------------------------------------------------------------------------
 include $(CLEAR_VARS)
-LOCAL_MODULE:= ruby/ext/mathn/rational
+LOCAL_MODULE:= ruby/mathn/rational
 LOCAL_SRC_FILES:= $(RUBY_TOP)/ext/mathn/rational/rational.c
 LOCAL_SHARED_LIBRARIES:= libruby
 LOCAL_C_INCLUDES+= $(RUBY_C_INCLUDE) \
@@ -787,7 +787,7 @@ include $(BUILD_SHARED_LIBRARY)
 
 # ------------------------------------------------------------------------------
 include $(CLEAR_VARS)
-LOCAL_MODULE:= ruby/ext/nkf
+LOCAL_MODULE:= ruby/nkf
 LOCAL_SRC_FILES:= $(RUBY_TOP)/ext/nkf/nkf.c
 LOCAL_SHARED_LIBRARIES:= libruby
 LOCAL_C_INCLUDES+= $(RUBY_C_INCLUDE) $(LOCAL_PATH)/$(RUBY_TOP)/ext/nkf
@@ -797,7 +797,7 @@ include $(BUILD_SHARED_LIBRARY)
 
 # ------------------------------------------------------------------------------
 include $(CLEAR_VARS)
-LOCAL_MODULE:= ruby/ext/openssl
+LOCAL_MODULE:= ruby/openssl
 LOCAL_SRC_FILES:= \
 	$(RUBY_TOP)/ext/openssl/ossl_bn.c \
 	$(RUBY_TOP)/ext/openssl/ossl_ocsp.c \
@@ -841,7 +841,7 @@ include $(BUILD_SHARED_LIBRARY)
 
 # ------------------------------------------------------------------------------
 include $(CLEAR_VARS)
-LOCAL_MODULE:= ruby/ext/pty
+LOCAL_MODULE:= ruby/pty
 LOCAL_SRC_FILES:= $(RUBY_TOP)/ext/pty/pty.c
 LOCAL_SHARED_LIBRARIES:= libruby
 LOCAL_C_INCLUDES+= $(RUBY_C_INCLUDE) $(LOCAL_PATH)/$(RUBY_TOP)/ext/pty
@@ -851,7 +851,7 @@ include $(BUILD_SHARED_LIBRARY)
 
 # ------------------------------------------------------------------------------
 include $(CLEAR_VARS)
-LOCAL_MODULE:= ruby/ext/racc/cparse
+LOCAL_MODULE:= ruby/racc/cparse
 LOCAL_SRC_FILES:= $(RUBY_TOP)/ext/racc/cparse/cparse.c
 LOCAL_SHARED_LIBRARIES:= libruby
 LOCAL_C_INCLUDES+= $(RUBY_C_INCLUDE) $(LOCAL_PATH)/$(RUBY_TOP)/ext/racc/cparse
@@ -861,7 +861,7 @@ include $(BUILD_SHARED_LIBRARY)
 
 # ------------------------------------------------------------------------------
 include $(CLEAR_VARS)
-LOCAL_MODULE:= ruby/ext/ripper
+LOCAL_MODULE:= ruby/ripper
 LOCAL_SRC_FILES:= $(RUBY_TOP)/ext/ripper/ripper.c
 LOCAL_SHARED_LIBRARIES:= libruby
 LOCAL_C_INCLUDES+= $(RUBY_C_INCLUDE) $(LOCAL_PATH)/$(RUBY_TOP)/ext/ripper
@@ -871,7 +871,7 @@ include $(BUILD_SHARED_LIBRARY)
 
 # ------------------------------------------------------------------------------
 include $(CLEAR_VARS)
-LOCAL_MODULE:= ruby/ext/sdbm
+LOCAL_MODULE:= ruby/sdbm
 LOCAL_SRC_FILES:= \
 	$(RUBY_TOP)/ext/sdbm/init.c \
 	$(RUBY_TOP)/ext/sdbm/_sdbm.c
@@ -883,7 +883,7 @@ include $(BUILD_SHARED_LIBRARY)
 
 # ------------------------------------------------------------------------------
 include $(CLEAR_VARS)
-LOCAL_MODULE:= ruby/ext/socket
+LOCAL_MODULE:= ruby/socket
 LOCAL_SRC_FILES:= $(RUBY_TOP)/ext/socket/socket.c
 LOCAL_SHARED_LIBRARIES:= libruby
 LOCAL_C_INCLUDES+= $(RUBY_C_INCLUDE) $(LOCAL_PATH)/$(RUBY_TOP)/ext/socket
@@ -893,7 +893,7 @@ include $(BUILD_SHARED_LIBRARY)
 
 # ------------------------------------------------------------------------------
 include $(CLEAR_VARS)
-LOCAL_MODULE:= ruby/ext/stringio
+LOCAL_MODULE:= ruby/stringio
 LOCAL_SRC_FILES:= $(RUBY_TOP)/ext/stringio/stringio.c
 LOCAL_SHARED_LIBRARIES:= libruby
 LOCAL_C_INCLUDES+= $(RUBY_C_INCLUDE) $(LOCAL_PATH)/$(RUBY_TOP)/ext/stringio
@@ -903,7 +903,7 @@ include $(BUILD_SHARED_LIBRARY)
 
 # ------------------------------------------------------------------------------
 include $(CLEAR_VARS)
-LOCAL_MODULE:= ruby/ext/strscan
+LOCAL_MODULE:= ruby/strscan
 LOCAL_SRC_FILES:= $(RUBY_TOP)/ext/strscan/strscan.c
 LOCAL_SHARED_LIBRARIES:= libruby
 LOCAL_C_INCLUDES+= $(RUBY_C_INCLUDE) $(LOCAL_PATH)/$(RUBY_TOP)/ext/strscan
@@ -913,7 +913,7 @@ include $(BUILD_SHARED_LIBRARY)
 
 # ------------------------------------------------------------------------------
 include $(CLEAR_VARS)
-LOCAL_MODULE:= ruby/ext/syck
+LOCAL_MODULE:= ruby/syck
 LOCAL_SRC_FILES:= \
 	$(RUBY_TOP)/ext/syck/handler.c \
 	$(RUBY_TOP)/ext/syck/rubyext.c \
@@ -933,7 +933,7 @@ include $(BUILD_SHARED_LIBRARY)
 
 # ------------------------------------------------------------------------------
 include $(CLEAR_VARS)
-LOCAL_MODULE:= ruby/ext/syslog
+LOCAL_MODULE:= ruby/syslog
 LOCAL_SRC_FILES:= $(RUBY_TOP)/ext/syslog/syslog.c
 LOCAL_SHARED_LIBRARIES:= libruby
 LOCAL_C_INCLUDES+= $(RUBY_C_INCLUDE) $(LOCAL_PATH)/$(RUBY_TOP)/ext/syslog
@@ -943,7 +943,7 @@ include $(BUILD_SHARED_LIBRARY)
 
 # ------------------------------------------------------------------------------
 include $(CLEAR_VARS)
-LOCAL_MODULE:= ruby/ext/zlib
+LOCAL_MODULE:= ruby/zlib
 LOCAL_SRC_FILES:= $(RUBY_TOP)/ext/zlib/zlib.c
 LOCAL_SHARED_LIBRARIES:= libruby libz
 LOCAL_C_INCLUDES+= $(RUBY_C_INCLUDE) $(LOCAL_PATH)/$(RUBY_TOP)/ext/zlib
