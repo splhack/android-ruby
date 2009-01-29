@@ -430,6 +430,7 @@ ruby_init_loadpath_safe(int safe_level)
     incpush(RUBY_RELATIVE(RUBY_THIN_ARCHLIB));
 #endif
     incpush(RUBY_RELATIVE(RUBY_ARCHLIB));
+    incpush("/system/lib/ruby");
 
     if (safe_level == 0) {
 	incpush(".");
