@@ -1,1 +1,1 @@
-#define RUBY_REVISION 21700
+#define RUBY_REVISION 16

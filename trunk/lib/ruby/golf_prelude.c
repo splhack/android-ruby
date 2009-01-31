@@ -107,6 +107,7 @@ static const char prelude_code0[] =
 "      to_a.#{meth}(*args, &block)\n"
 "    end\"\n"
 "  }\n"
+"  alias old_inspect inspect\n"
 "  alias inspect old_to_s\n"
 "end\n"
 ;
