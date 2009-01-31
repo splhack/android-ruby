@@ -1403,7 +1403,7 @@ process_options(VALUE arg)
     });
 
     if (opt->dump & DUMP_BIT(insns)) {
-	rb_io_write(rb_stdout, ruby_iseq_disasm(iseq));
+	rb_io_write(rb_stdout, rb_iseq_disasm(iseq));
 	rb_io_flush(rb_stdout);
 	return Qtrue;
     }
@@ -1556,6 +1556,7 @@ load_file_internal(VALUE arg)
 	    rb_io_ungetbyte(f, c);
 	}
 	require_libraries(opt);	/* Why here? unnatural */
+	rb_io_ungetbyte(f, Qnil);
     }
     if (opt->src.enc.index >= 0) {
 	enc = rb_enc_from_index(opt->src.enc.index);

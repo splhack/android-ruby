@@ -17,8 +17,6 @@ See doc/NEWS-1.8.7 for changes between 1.8.6 and 1.8.7.
     * New syntax and semantics
           o Block arguments are always local
           o New semantics for block arguments
-          o Method used for splat arguments: #to_splat instead of
-            #to_ary
           o defined? and local variables
           o Parser expects that your source code has only valid byte
             sequence in some character encoding.  Use magic comments
@@ -26,6 +24,9 @@ See doc/NEWS-1.8.7 for changes between 1.8.6 and 1.8.7.
           o New semantics for constant definition in instance_eval
             or in module_eval.
 
+    * Deprecated syntax
+          o colon (:) instead of "then" in if/unless or case expression.
+          o retry in a loop or an iterator.
 
 * builtin classes and objects
 
@@ -33,7 +34,8 @@ See doc/NEWS-1.8.7 for changes between 1.8.6 and 1.8.7.
           o Kernel#methods and #singleton_methods used to return an 
             array of strings but now they return an array of symbols.
     * Class and Module
-          o Module#attr is an alias of attr_reader
+          o Module#attr works as Module#attr_reader by default.
+	    Optional boolean argument is obsolete.
           o Module#instance_methods, #private_instance_methods and
             #public_instance_methods used to return an array of 
             strings but now they return an array of symbols.
@@ -75,7 +77,6 @@ See doc/NEWS-1.8.7 for changes between 1.8.6 and 1.8.7.
           o Non-blocking IO
           o Kernel#open takes "t" for newline conversion
           o Kernel#open takes encoding specified
-          o IO#initialize now accepts an IO argument
           o IO automatically converts byte sequence from a character
             encodings into another if specified.
           o StringIO#readpartial
@@ -107,12 +108,20 @@ See doc/NEWS-1.8.7 for changes between 1.8.6 and 1.8.7.
     * File::Stat
           o File::Stat#world_readable?
           o File::Stat#world_writable?
-    * String and Regexp
-          o No longer an Enumerable
-          o ?c semantics
-          o "One-char-wide" semantics for String#[] and String#[]=
-          o Character-wise semantics in many methods in stead of
-            byte-wise.
+    * String
+          o No longer an Enumerable: use each_line/lines for line
+            oriented operation
+          o Encoding-awareness
+              o Character-wise semantics in many methods instead of
+                byte-wise.
+                  o String#[]: Indexing a String with an integer returns a
+                    single character String instead of an integer.
+                  o String#[]=: No longer takes an integer as right
+                    side value.  Note that "str[i] = ?c" because of
+                    the following change.
+                  o ?c is evaluated to a single character string
+                    instead of an integer.
+    * Regexp
           o Encoding-awareness
           o Regexp matches only with strings which is encoded in a
             compatible character encoding to the regexp's.
@@ -136,6 +145,7 @@ See doc/NEWS-1.8.7 for changes between 1.8.6 and 1.8.7.
             tainted/untainted model.
 
     * Deprecation
+          o $= (global flag for case-sensitiveness on string matching)
           o Kernel#to_a
           o Kernel#getc, #gsub, #sub
           o Kernel#callcc and Continuation now become 'continuation'
@@ -210,9 +220,13 @@ See doc/NEWS-1.8.7 for changes between 1.8.6 and 1.8.7.
           o #[] can take splatted arguments, hash style arguments 
             and a block.
           o New directives in printf-style formatted strings (%).
-          o Newlines allowed before ternary colon
+          o Newlines allowed before ternary colon operator (:) and
+            method call dot operator (.)
+          o Negative operators such as !, != and !~ are now
+            overloadable
           o Encoding.default_external and default_internal
-
+          o __ENCODING__: New pseudo variable to hold the current
+            script's encoding
 
 === Library updates
 
@@ -296,7 +310,6 @@ See doc/NEWS-1.8.7 for changes between 1.8.6 and 1.8.7.
 	  o String#match
     * Symbol
           o Zero-length symbols allowed
-          o Symbol#=== matches strings
           o Symbol#intern
           o Symbol#encoding
           o Symbol methods similar to those in String
@@ -401,5 +414,5 @@ See doc/NEWS-1.8.7 for changes between 1.8.6 and 1.8.7.
           (2) Perhaps
           (3) Not supported
     * Dropped
-          o No longer supports djgpp, human68k, MacOS 9 or earlier,
+          o No longer supports djgpp, bcc32, human68k, MacOS 9 or earlier,
             VMS nor Windows CE.

@@ -18,7 +18,7 @@ AC_ARG_WITH(baseruby,
 	[
 		BASERUBY="ruby"
 	])
-test "`$BASERUBY -e 'p 42' 2>/dev/null`" = 42 ||
+test "`RUBYOPT=- $BASERUBY -e 'p 42' 2>/dev/null`" = 42 ||
     BASERUBY="echo executable host ruby is required.  use --with-baseruby option.; false"
 AC_SUBST(BASERUBY)
 
@@ -217,6 +217,11 @@ AC_CHECK_TOOL(AS, as)
 ASFLAGS=$ASFLAGS
 AC_SUBST(ASFLAGS)
 
+case "$target_os" in
+cygwin*|mingw*)
+    ac_cv_prog_OBJCOPY=":";;
+esac
+
 # BSD's ports and MacPorts prefix GNU binutils with 'g'
 AC_CHECK_TOOLS(OBJDUMP, [objdump gobjdump])
 AC_CHECK_TOOLS(OBJCOPY, [objcopy gobjcopy])
@@ -265,6 +270,8 @@ else
   MAKEDIRS='install -d'
 fi
 AC_SUBST(MAKEDIRS)
+AC_SUBST(RMDIRS, ['$(top_srcdir)/tool/rmdirs'])
+AC_SUBST(RMALL, ['rm -fr'])
 
 dnl check for large file stuff
 mv confdefs.h confdefs1.h
@@ -1461,7 +1468,7 @@ if test "$with_dln_a_out" != yes; then
 			rb_cv_dlopen=yes;;
 	cygwin*|mingw*)	: ${LDSHARED="${CC} -shared "'$(if $(filter-out -g -g0,$(debugflags)),,-s)'}
 			XLDFLAGS="$XLDFLAGS -Wl,--stack,0x00200000,--enable-auto-import"
-			DLDFLAGS="${DLDFLAGS} -Wl,--enable-auto-image-base,--enable-auto-import,--export-all"
+			DLDFLAGS="${DLDFLAGS} -Wl,--enable-auto-image-base,--enable-auto-import"
 			: ${LIBPATHENV=""}
 			rb_cv_dlopen=yes ;;
 	hiuxmpp)	: ${LDSHARED='ld -r'} ;;
@@ -1854,6 +1861,7 @@ case "$target_os" in
 	cygwin*)
 	    if test x"$enable_shared" = xyes; then
 		LIBRUBY_SO='cyg$(RUBY_SO_NAME)'${MAJOR}${MINOR}${TEENY}.dll
+		LIBRUBY_DLDFLAGS="${LIBRUBY_DLDFLAGS}"' $(RUBYDEF)'
 	    fi
 	    ;;
 	mingw*)

@@ -524,12 +524,13 @@ end
 
 def try_func(func, libs, headers = nil, &b)
   headers = cpp_include(headers)
-  try_link(<<"SRC", libs, &b) or try_link(<<"SRC", libs, &b)
+  try_link(<<"SRC", libs, &b) or
 #{headers}
 /*top*/
 #{MAIN_DOES_NOTHING}
 int t() { void ((*volatile p)()); p = (void ((*)()))#{func}; return 0; }
 SRC
+  try_link(<<"SRC", libs, &b)
 #{headers}
 /*top*/
 #{MAIN_DOES_NOTHING}
@@ -1298,6 +1299,29 @@ def winsep(s)
   s.tr('/', '\\')
 end
 
+# Converts native path to format acceptable in Makefile
+#
+# Internal use only.
+#
+if !CROSS_COMPILING
+  case CONFIG['build_os']
+  when 'mingw32'
+    def mkintpath(path)
+      # mingw uses make from msys and it needs special care
+      # converts from C:\some\path to /C/some/path
+      path = path.dup
+      path.tr!('\\', '/')
+      path.sub!(/\A([A-Za-z]):(?=\/)/, '/\1')
+      path
+    end
+  end
+end
+unless defined?(mkintpath)
+  def mkintpath(path)
+    path
+  end
+end
+
 def configuration(srcdir)
   mk = []
   vpath = $VPATH.dup
@@ -1307,8 +1331,6 @@ def configuration(srcdir)
       if CONFIG['target_os'] != 'cygwin'
         vpath = vpath.map {|p| p.sub(/.*/, '$(shell cygpath -u \&)')}
       end
-    when 'mingw32'
-      CONFIG['PATH_SEPARATOR'] = ';'
     end
   end
   CONFIG["hdrdir"] ||= $hdrdir
@@ -1316,14 +1338,10 @@ def configuration(srcdir)
 SHELL = /bin/sh
 
 #### Start of system configuration section. ####
-#{
-if $extmk
-  "top_srcdir = " + $top_srcdir.sub(%r"\A#{Regexp.quote($topdir)}/", "$(topdir)/")
-end
-}
-srcdir = #{srcdir.gsub(/\$\((srcdir)\)|\$\{(srcdir)\}/) {CONFIG[$1||$2]}.quote}
-topdir = #{($extmk ? CONFIG["topdir"] : $topdir).quote}
-hdrdir = #{CONFIG["hdrdir"].quote}
+#{"top_srcdir = " + $top_srcdir.sub(%r"\A#{Regexp.quote($topdir)}/", "$(topdir)/") if $extmk}
+srcdir = #{srcdir.gsub(/\$\((srcdir)\)|\$\{(srcdir)\}/) {mkintpath(CONFIG[$1||$2])}.quote}
+topdir = #{mkintpath($extmk ? CONFIG["topdir"] : $topdir).quote}
+hdrdir = #{mkintpath(CONFIG["hdrdir"]).quote}
 arch_hdrdir = #{$arch_hdrdir}
 VPATH = #{vpath.join(CONFIG['PATH_SEPARATOR'])}
 }
@@ -1349,6 +1367,7 @@ VPATH = #{vpath.join(CONFIG['PATH_SEPARATOR'])}
   else
     sep = ""
   end
+  possible_command = (proc {|s| s if /top_srcdir/ !~ s} unless $extmk)
   extconf_h = $extconf_h ? "-DRUBY_EXTCONF_H=\\\"$(RUBY_EXTCONF_H)\\\" " : $defs.join(" ") << " "
   mk << %{
 CC = #{CONFIG['CC']}
@@ -1386,13 +1405,14 @@ sitearch = #{CONFIG['sitearch']}
 ruby_version = #{RbConfig::CONFIG['ruby_version']}
 ruby = #{$ruby}
 RUBY = $(ruby#{sep})
-RM = #{config_string('RM') || '$(RUBY) -run -e rm -- -f'}
+RM = #{config_string('RM', &possible_command) || '$(RUBY) -run -e rm -- -f'}
 RM_RF = #{'$(RUBY) -run -e rm -- -rf'}
-MAKEDIRS = #{config_string('MAKEDIRS') || '@$(RUBY) -run -e mkdir -- -p'}
-INSTALL = #{config_string('INSTALL') || '@$(RUBY) -run -e install -- -vp'}
+RMDIRS = #{config_string('RMDIRS', &possible_command) || '$(RUBY) -run -e rmdir -- -p'}
+MAKEDIRS = #{config_string('MAKEDIRS', &possible_command) || '@$(RUBY) -run -e mkdir -- -p'}
+INSTALL = #{config_string('INSTALL', &possible_command) || '@$(RUBY) -run -e install -- -vp'}
 INSTALL_PROG = #{config_string('INSTALL_PROG') || '$(INSTALL) -m 0755'}
 INSTALL_DATA = #{config_string('INSTALL_DATA') || '$(INSTALL) -m 0644'}
-COPY = #{config_string('CP') || '@$(RUBY) -run -e cp -- -v'}
+COPY = #{config_string('CP', &possible_command) || '@$(RUBY) -run -e cp -- -v'}
 
 #### End of system configuration section. ####
 
@@ -1586,6 +1606,11 @@ def create_makefile(target, srcprefix = nil)
   end
   origdef ||= ''
 
+  if $extout and $INSTALLFILES
+    $cleanfiles.concat($INSTALLFILES.collect {|files, dir|File.join(dir, files.sub(/\A\.\//, ''))})
+    $distcleandirs.concat($INSTALLFILES.collect {|files, dir| dir})
+  end
+
   if $extmk and not $extconf_h
     create_header
   end
@@ -1603,6 +1628,7 @@ DEFFILE = #{deffile}
 
 CLEANFILES = #{$cleanfiles.join(' ')}
 DISTCLEANFILES = #{$distcleanfiles.join(' ')}
+DISTCLEANDIRS = #{$distcleandirs.join(' ')}
 
 extout = #{$extout}
 extout_prefix = #{$extout_prefix}
@@ -1629,6 +1655,18 @@ all:    #{$extout ? "install" : target ? "$(DLLIB)" : "Makefile"}
 static: $(STATIC_LIB)#{$extout ? " install-rb" : ""}
 "
   mfile.print CLEANINGS
+  fsep = config_string('BUILD_FILE_SEPARATOR') {|s| s unless s == "/"}
+  if fsep
+    sep = ":/=#{fsep}"
+    fseprepl = proc {|s|
+      s = s.gsub("/", fsep)
+      s = s.gsub(/(\$\(\w+)(\))/) {$1+sep+$2}
+      s = s.gsub(/(\$\{\w+)(\})/) {$1+sep+$2}
+    }
+  else
+    fseprepl = proc {|s| s}
+    sep = ""
+  end
   dirs = []
   mfile.print "install: install-so install-rb\n\n"
   sodir = (dir = "$(RUBYARCHDIR)").dup
@@ -1637,18 +1675,13 @@ static: $(STATIC_LIB)#{$extout ? " install-rb" : ""}
     f = "$(DLLIB)"
     dest = "#{dir}/#{f}"
     mfile.puts dir, "install-so: #{dest}"
-    unless $extout
+    if $extout
+      mfile.print "clean-so::\n"
+      mfile.print "\t@-$(RM) #{fseprepl[dest]}\n"
+      mfile.print "\t@-$(RMDIRS) #{fseprepl[dir]}\n"
+    else
       mfile.print "#{dest}: #{f}\n"
-      if (sep = config_string('BUILD_FILE_SEPARATOR'))
-        f.gsub!("/", sep)
-        dir.gsub!("/", sep)
-        sep = ":/="+sep
-        f.gsub!(/(\$\(\w+)(\))/) {$1+sep+$2}
-        f.gsub!(/(\$\{\w+)(\})/) {$1+sep+$2}
-        dir.gsub!(/(\$\(\w+)(\))/) {$1+sep+$2}
-        dir.gsub!(/(\$\{\w+)(\})/) {$1+sep+$2}
-      end
-      mfile.print "\t$(INSTALL_PROG) #{f} #{dir}\n"
+      mfile.print "\t$(INSTALL_PROG) #{fseprepl[f]} #{fseprepl[dir]}\n"
       if defined?($installed_list)
 	mfile.print "\t@echo #{dir}/#{File.basename(f)}>>$(INSTALLED_LIST)\n"
       end
@@ -1666,31 +1699,35 @@ static: $(STATIC_LIB)#{$extout ? " install-rb" : ""}
       unless dirs.include?(dir)
 	dirs << dir
 	mfile.print "pre-install-rb#{sfx}: #{dir}\n"
-      end if $nmake
+      end
       for f in files
 	dest = "#{dir}/#{File.basename(f)}"
 	mfile.print("install-rb#{sfx}: #{dest}\n")
         mfile.print("#{dest}: #{f}\n")
-        mfile.print("\t$(MAKEDIRS) $(@D)\n") unless $nmake
         mfile.print("\t$(#{$extout ? 'COPY' : 'INSTALL_DATA'}) ")
-	sep = config_string('BUILD_FILE_SEPARATOR')
-	if sep
-	  f = f.gsub("/", sep)
-	  sep = ":/="+sep
-	  f = f.gsub(/(\$\(\w+)(\))/) {$1+sep+$2}
-	  f = f.gsub(/(\$\{\w+)(\})/) {$1+sep+$2}
-	else
-	  sep = ""
-	end
-	mfile.print("#{f} $(@D#{sep})\n")
+	mfile.print("#{fseprepl[f]} $(@D#{sep})\n")
 	if defined?($installed_list) and !$extout
 	  mfile.print("\t@echo #{dest}>>$(INSTALLED_LIST)\n")
 	end
+        if $extout
+          mfile.print("clean-rb#{sfx}::\n")
+          mfile.print("\t@-$(RM) #{fseprepl[dest]}\n")
+        end
+      end
+    end
+    if $extout
+      dirs.uniq!
+      dirs.reverse!
+      unless dirs.empty?
+        mfile.print("clean-rb#{sfx}::\n")
+        for dir in dirs
+          mfile.print("\t@-$(RMDIRS) #{fseprepl[dir]}\n")
+        end
       end
     end
   end
   dirs.unshift(sodir) if target and !dirs.include?(sodir)
-  dirs.each {|d| mfile.print "#{d}:\n\t$(MAKEDIRS) $@\n" if $nmake || d == sodir}
+  dirs.each {|d| mfile.print "#{d}:\n\t$(MAKEDIRS) $@\n"}
 
   mfile.print <<-SITEINSTALL
 
@@ -1719,7 +1756,6 @@ site-install-rb: install-rb
     end
   end
 
-  sep = config_string('BUILD_FILE_SEPARATOR') {|s| ":/=#{s}" if s != "/"} || ""
   mfile.print "$(RUBYARCHDIR)/" if $extout
   mfile.print "$(DLLIB): "
   mfile.print "$(DEFFILE) " if makedef
@@ -1748,7 +1784,7 @@ site-install-rb: install-rb
   if File.exist?(depend)
     mfile.print("###\n", *depend_rules(File.read(depend)))
   else
-    headers = %w[ruby.h defines.h]
+    headers = %w[$(hdrdir)/ruby.h $(hdrdir)/ruby/defines.h]
     if RULE_SUBST
       headers.each {|h| h.sub!(/.*/, &RULE_SUBST.method(:%))}
     end
@@ -1803,6 +1839,7 @@ def init_mkmf(config = CONFIG)
   $cleanfiles = config_string('CLEANFILES') {|s| Shellwords.shellwords(s)} || []
   $cleanfiles << "mkmf.log"
   $distcleanfiles = config_string('DISTCLEANFILES') {|s| Shellwords.shellwords(s)} || []
+  $distcleandirs = config_string('DISTCLEANDIRS') {|s| Shellwords.shellwords(s)} || []
 
   $extout ||= nil
   $extout_prefix ||= nil
@@ -1897,12 +1934,19 @@ MAIN_DOES_NOTHING = config_string('MAIN_DOES_NOTHING') || 'int main() {return 0;
 
 sep = config_string('BUILD_FILE_SEPARATOR') {|s| ":/=#{s}" if sep != "/"} || ""
 CLEANINGS = "
-clean:
+clean-rb-default::
+clean-rb::
+clean-so::
+clean: clean-so clean-rb-default clean-rb
 \t\t@-$(RM) $(CLEANLIBS#{sep}) $(CLEANOBJS#{sep}) $(CLEANFILES#{sep})
 
-distclean: clean
+distclean-rb-default::
+distclean-rb::
+distclean-so::
+distclean: clean distclean-so distclean-rb-default distclean-rb
 \t\t@-$(RM) Makefile $(RUBY_EXTCONF_H) conftest.* mkmf.log
 \t\t@-$(RM) core ruby$(EXEEXT) *~ $(DISTCLEANFILES#{sep})
+\t\t@-$(RMDIRS) $(DISTCLEANDIRS#{sep})
 
 realclean: distclean
 "
