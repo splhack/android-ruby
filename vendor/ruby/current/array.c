@@ -1264,7 +1264,9 @@ rb_ary_aset(int argc, VALUE *argv, VALUE ary)
     long offset, beg, len;
 
     if (argc == 3) {
-	rb_ary_splice(ary, NUM2LONG(argv[0]), NUM2LONG(argv[1]), argv[2]);
+	beg = NUM2LONG(argv[0]);
+	len = NUM2LONG(argv[1]);
+	rb_ary_splice(ary, beg, len, argv[2]);
 	return argv[2];
     }
     if (argc != 2) {
@@ -2209,9 +2211,11 @@ take_i(VALUE val, VALUE *args, int argc, VALUE *argv)
 static VALUE
 take_items(VALUE obj, long n)
 {
-    VALUE result = rb_ary_new2(n);
+    VALUE result = rb_check_array_type(obj);
     VALUE args[2];
 
+    if (!NIL_P(result)) return rb_ary_subseq(result, 0, n);
+    result = rb_ary_new2(n);
     args[0] = result; args[1] = (VALUE)n;
     rb_block_call(obj, rb_intern("each"), 0, 0, take_i, (VALUE)args);
     return result;

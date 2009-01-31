@@ -1,3 +1,321 @@
+Fri Jan 30 14:31:14 2009  NAKAMURA Usaku  <usa@ruby-lang.org>
+
+	* tool/make-snapshot (prereq): remove enc.mk from tarball because
+	  BSD make checks $(srcdir)/enc.mk and try to run $(builddir)/enc.mk.
+
+Fri Jan 30 14:11:48 2009  NAKAMURA Usaku  <usa@ruby-lang.org>
+
+	* enc/depend: extract comile rules to each target for VC++.
+
+Fri Jan 30 12:59:49 2009  Nobuyoshi Nakada  <nobu@ruby-lang.org>
+
+	* cygwin/GNUmakefile.in (RUBYDEF): depends on makefiles.
+
+	* cygwin/GNUmakefile.in (RUBYDEF): adds DATA to non-function symbols
+	  which is not marked as T.
+
+Tue Jan 20 16:17:12 2009  Nobuyoshi Nakada  <nobu@ruby-lang.org>
+
+	* cont.c (ruby_Init_{Continuation_body,Fiber_as_Coroutine}): prefixed
+	  with ruby_ to export.
+
+	* ext/continuation/continuation.c, ext/fiber/fiber.c: ditto.
+
+Thu Jan 29 16:22:41 2009  Shugo Maeda  <shugo@ruby-lang.org>
+
+	* load.c (rb_feature_provided): should not calculate len by pointer
+	  subtraction because feature may be a expanded path.
+	  [ruby-core:21267]
+
+Thu Jan 29 14:12:15 2009  Nobuyoshi Nakada  <nobu@ruby-lang.org>
+
+	* configure.in (BASERUBY): erases RUBYOPT at the test.
+
+	* configure.in (OBJCOPY): not used on Windows.
+
+Thu Jan 29 12:29:51 2009  Nobuyoshi Nakada  <nobu@ruby-lang.org>
+
+	* lib/rake.rb (FileUtils#rake_system): no longer needs workaround
+	  on Windows.  [ruby-core:21339]
+
+	* lib/rake/win32.rb (Rake::Win32#rake_system): ditto.
+
+	* lib/rake/win32.rb (Rake::Win32#win32_system_dir): no longer
+	  needs environment variables other than APPDATA now.
+
+	* lib/rake.rb (Rake::Application#standard_system_dir): uses
+	  platfrom specific definition on Windows system.
+
+Thu Jan 29 00:24:48 2009  NAKAMURA Usaku  <usa@ruby-lang.org>
+
+	* ext/zlib/zlib.c (zstream_run): previous change didn't resolve the
+	  problem.
+
+Fri Jan 30 01:39:27 2009  Yusuke Endoh  <mame@tsg.ne.jp>
+
+	* parse.y (top_compstmt, top_stmts, top_stmt): prohibit BEGIN {} in
+	  non-toplevel scope.  [ruby-core:21657]
+
+	* test/ruby/test_beginendblock.rb (test_begininclass): add a test for
+	  above.
+
+Wed Jan 28 22:51:12 2009  NAKAMURA Usaku  <usa@ruby-lang.org>
+
+	* ext/zlib/zlib.c (zstream_run): desperately guard the variable.
+	  [ruby-core:20576]
+
+Mon Jan 19 11:46:39 2009  Koichi Sasada  <ko1@atdot.net>
+
+	* vm_eval.c, eval.c (rb_f_block_given_p): move definition of
+	  "iterator?" and "block_given?" to make static.
+
+	* vm.c (vm_get_ruby_level_caller_cfp): make it static.
+
+	* eval_intern.h, vm_insnhelper.c: move decl. of
+	  vm_get_ruby_level_caller_cfp()
+	  from eval_intern.h to vm_insnhelper.c.
+
+Mon Jan 19 11:27:39 2009  Koichi Sasada  <ko1@atdot.net>
+
+	* vm.c: add a prefix "rb_" to exposed functions
+	  vm_get_ruby_level_next_cfp(), rb_vm_make_env_object(),
+	  vm_stack_to_heap(), vm_make_proc(), vm_invoke_proc(),
+	  vm_get_sourceline(), vm_cref(), vm_localjump_error(),
+	  vm_make_jump_tag_but_local_jump(), vm_jump_tag_but_local_jump().
+  	  This changes may affect only core because most of renamed functions
+	  require a pointer of not-exposed struct such as rb_thread_t or NODE.
+	  In short, they are core functions.
+
+	* cont.c, eval.c, eval_intern.h, load.c, proc.c, thread.c,
+	  vm_core.h, vm_dump.c, vm_eval.c, vm_exec.c, vm_insnhelper.c:
+	  ditto.
+
+Mon Jan 19 11:02:30 2009  Koichi Sasada  <ko1@atdot.net>
+
+	* vm_dump.c: add a prefix "rb_vmdebug_" to
+	  vm_stack_dump_raw(), vm_stack_dump_raw_current(),
+	  vm_env_dump_raw(), vm_proc_dump_raw(), vm_stack_dump_th(),
+	  vm_debug_print_register(), vm_thread_dump_regs(),
+	  vm_debug_print_pre(), vm_debug_print_post(),
+	  vm_thread_dump_state().
+	  This change also may affect core (in fact, user of
+	  above functions may be only ko1).
+
+	* vm_core.h: ditto.
+
+	* vm_exec.h (SDR2): remove duplicate definition.
+
+Mon Jan 19 09:53:43 2009  Koichi Sasada  <ko1@atdot.net>
+
+	* iseq.c:
+	  rename ruby_iseq_disasm_insn() -> rb_iseq_disasm_insn().
+	  rename ruby_iseq_disasm() -> rb_iseq_disasm().
+
+	* compile.c:
+	  rename ruby_iseq_compile() -> rb_iseq_compile_node().
+	  rename ruby_iseq_translate_threaded_code() ->
+	         rb_iseq_translate_threaded_code().
+	  rename ruby_insns_name_array() -> rb_insns_name_array().
+	  rename ruby_iseq_build_from_ary() -> rb_iseq_build_from_ary().
+
+	* iseq.c, compile.c: remove ruby_insn_make_insn_table() and make
+	  static function insn_make_insn_table().
+
+	* iseq.h, ruby.c, vm.c, vm_core.h, vm_eval.c, vm_dump.c, 
+	  blockinlining.c: ditto.
+	  Rename strange "ruby_" prefix to "rb_" prefix.
+	  This changes may affect only core because renamed functions
+	  require a pointer of rb_iseq_t which is not exposed.
+
+Mon Jan 19 08:56:53 2009  Koichi Sasada  <ko1@atdot.net>
+
+	* eval.c, vm_eval.c (rb_f_local_variables): move definition from eval.c
+	  to vm_eval.c because vm_collect_local_variables_in_heap() should
+	  be static function.
+
+	* vm.c (vm_collect_local_variables_in_heap): make it static.
+
+Tue Jan 27 14:41:33 2009  Nobuyoshi Nakada  <nobu@ruby-lang.org>
+
+	* cygwin/GNUmakefile.in (RUBYDEF): needs DATA marks to export
+	  non-function symbols.  [ruby-core:21582]
+
+	* win32/mkexports.rb (Exports::Mingw#each_export): ditto.
+
+Sun Jan 25 12:17:21 2009  Nobuyoshi Nakada  <nobu@ruby-lang.org>
+
+	* cygwin/GNUmakefile.in (RUBYDEF): needs read-only section too.
+
+Tue Jan 20 15:32:29 2009  Nobuyoshi Nakada  <nobu@ruby-lang.org>
+
+	* Makefile.in (miniruby): renames and then removes, to get rid of
+	  EPERM on cygwin and mingw.
+
+	* Makefile.in ($(LIBRUBY_SO)): use wildcard option of objcopy.
+
+	* configure.in (DLDFLAGS): do not export all symbols.
+
+	* cygwin/GNUmakefile.in (RUBYDEF): rejects symbols prefixex with
+	  Init_.
+
+	* win32/mkexports.rb (Exports::Mingw): includes all symbols except for
+	  prefixed with Init_ as well as mswin32.
+
+Wed Jan 28 15:24:11 2009  TAKANO Mitsuhiro (takano32)  <tak@no32.tk>
+
+	* math.c: SEGV is caused by implicit rb_to_float declaration
+	  test_complexrational.rb: [BUG] in IA-64 architecture
+
+Tue Jan 27 03:23:43 2009  Yukihiro Matsumoto  <matz@ruby-lang.org>
+
+	* lib/mkmf.rb (create_makefile): should point correct path to
+	  ruby.h and defines.h.   [ruby-core:21570]
+
+Mon Jan 26 16:00:40 2009  Nobuyoshi Nakada  <nobu@ruby-lang.org>
+
+	* array.c (rb_ary_aset): fixed arguments evaluation order.
+
+Sun Jan 25 12:02:56 2009  Nobuyoshi Nakada  <nobu@ruby-lang.org>
+
+	* win32/Makefile.sub (clean-ext): condition of EXTS was inverted.
+
+Sun Jan 25 11:50:20 2009  Nobuyoshi Nakada  <nobu@ruby-lang.org>
+
+	* lib/mkmf.rb (create_makefile):fixed the variables order because
+	  converter proc refers the separator.
+
+Sun Jan 25 11:25:10 2009  Nobuyoshi Nakada  <nobu@ruby-lang.org>
+
+	* Makefile.in, win32/Makefile.sub (RMDIRS): remove directory and
+	  parents.
+
+	* Makefile.in, win32/Makefile.sub (distclean-rdoc): added to remove
+	  temprary rdoc.
+
+	* Makefile.in, win32/Makefile.sub (clean-ext): skips non-existent
+	  directories.
+
+	* common.mk (clean, distclean): cleans rdoc.
+
+	* common.mk (clean-extout): removes extout directory.
+
+	* configure.in (RMDIRS, RMALL): added to clean extout.
+
+	* lib/fileutils.rb (FileUtils#rmdir): added :parents option.
+
+	* lib/mkmf.rb (create_makefile): cleans installed files at clean
+	  instead of distclean.
+
+	* lib/mkmf.rb (create_makefile): added clean-so and clean-rb.
+
+	* lib/mkmf.rb (def init_mkmf): added DISTCLEANDIRS.
+
+	* lib/un.rb (rmdir): added -p option.
+
+	* tool/rmdirs, win32/rmdirs.bat: removes directory and the parents.
+
+	* win32/rm.bat: added -r option.
+
+Sun Jan 25 09:09:29 2009  Nobuyoshi Nakada  <nobu@ruby-lang.org>
+
+	* dir.c (join_path): use strlcat() to force link.
+
+	* dir.c (glob_helper): no strcpy() is needed since len is known.
+
+Sat Jan 24 08:22:35 2009  Nobuyoshi Nakada  <nobu@ruby-lang.org>
+
+	* lib/mkmf.rb (configuration): tools under the top source
+	  directory are not installed, so unusable outside extmk.rb.
+
+Fri Jan 23 17:24:31 2009  WATANABE Hirofumi  <eban@ruby-lang.org>
+
+	* golf_prelude.rb (Enumerator#inspect): avoid warning.
+
+Fri Jan 23 15:12:52 2009  Nobuyoshi Nakada  <nobu@ruby-lang.org>
+
+	* lib/mkmf.rb (mkintpath): new function which converts native path
+	  to format acceptable in Makefile.
+
+	* lib/mkmf.rb (configuration): leaves PATH_SEPARATOR unchanged.
+
+	* lib/mkmf.rb (configuration): convers srcdir, topdir and hdrdir.
+	  a patch by Alexey Borzenkov <snaury AT gmail.com> at
+	  [ruby-core:21448].
+
+	* lib/mkmf.rb (try_func): got rid of c-mode confusion.
+
+Fri Jan 23 13:26:45 2009  Nobuyoshi Nakada  <nobu@ruby-lang.org>
+
+	* signal.c (trap_handler): also accepts symbols.  [ruby-dev:37823]
+
+Thu Jan 22 18:14:04 2009  Nobuyoshi Nakada  <nobu@ruby-lang.org>
+
+	* lib/mkmf.rb (create_makefile): removes installed files under
+	  extout at distclean.
+
+Thu Jan 22 17:12:37 2009  Takeyuki FUJIOKA  <xibbar@ruby-lang.org>
+
+	* lib/cgi/core.rb (CGI.parse): generate only key on params hash
+	  if request have only key uri parameters.
+		(ex. index.cgi?aaa&bbb=1 # params=>{:aaa=>[],:bbb=>["1"]})
+
+	* test/cgi/test_cgi_core.rb: fix test for key only params.
+
+Thu Jan 22 16:29:50 2009  Nobuyoshi Nakada  <nobu@ruby-lang.org>
+
+	* lib/rubygems/installer.rb (Gem::Installer#initialize): fixed
+	  typos.
+
+Thu Jan 22 14:53:29 2009  Nobuyoshi Nakada  <nobu@ruby-lang.org>
+
+	* test/ruby/test_process.rb (MANDATORY_ENVS): needs RUBYLIB to run
+	  tests without install.
+
+Thu Jan 22 12:19:29 2009  Nobuyoshi Nakada  <nobu@ruby-lang.org>
+
+	* gc.c (define_final): cannot define finalizer for immediate
+	  values.  [ruby-core:21500]
+
+	* gc.c (define_final): freezes or hides internal values.
+
+Thu Jan 22 11:33:08 2009  Nobuyoshi Nakada  <nobu@ruby-lang.org>
+
+	* thread.c (rb_time_timeval): made a real prototype.  a patch from
+	  Marcus Rueckert <darix AT opensu.se> at [ruby-core:21492].
+
+Wed Jan 21 21:43:50 2009  Nobuyoshi Nakada  <nobu@ruby-lang.org>
+
+	* io.c (rb_io_ungetbyte, rb_io_ungetc): allows nil to reset EOF
+	  flag with ungetting nothing.
+
+	* ruby.c (load_file_internal): rests EOF flag to make possible to
+	  load from stdin after reading data.
+
+Wed Jan 21 15:32:15 2009  Nobuyoshi Nakada  <nobu@ruby-lang.org>
+
+	* io.c (rb_io_ungetbyte, rb_io_ungetc): clears EOF flag.
+
+Wed Jan 21 13:58:17 2009  Nobuyoshi Nakada  <nobu@ruby-lang.org>
+
+	* include/ruby/io.h (FMODE_EOF): EOF flag on TTY.
+
+	* io.c (io_set_eof): sets EOF flag for TTY.
+
+	* io.c (io_seek): clears EOF flag.
+
+	* io.c (io_fillbuf): returns EOF if already met EOF.  [ruby-dev:37798]
+
+	* io.c (io_fillbuf, io_fread, io_getpartial): sets EOF.
+
+Wed Jan 21 14:41:48 2009  NAKAMURA Usaku  <usa@ruby-lang.org>
+
+	* array.c (take_items): to_ary() raises ArgumentError if cannot to
+	  convert to Array. [ruby-dev:37797]
+
+Wed Jan 21 21:12:47 2009  Yuki Sonoda (Yugui)  <yugui@yugui.jp>
+
+	* introduces r21693 again for merging r21713.
+
 Tue Jan 20 19:12:18 2009  Yuki Sonoda (Yugui)  <yugui@yugui.jp>
 
 	* reverts r21693.
