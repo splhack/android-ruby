@@ -11,7 +11,7 @@ class CGI
   # Standard internet newline sequence
   EOL = CR + LF
 
-  REVISION = '$Id: core.rb 20881 2008-12-19 11:37:50Z yugui $' #:nodoc:
+  REVISION = '$Id: core.rb 21825 2009-01-28 09:21:49Z yugui $' #:nodoc:
 
   NEEDS_BINMODE = true if /WIN/i.match(RUBY_PLATFORM) 
 
@@ -339,6 +339,8 @@ class CGI
       key, value = pairs.split('=',2).collect{|v| CGI::unescape(v) }
       if key && value
         params.has_key?(key) ? params[key].push(value) : params[key] = [value]
+      elsif key
+        params[key]=[]
       end
     end
     params.default=[].freeze

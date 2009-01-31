@@ -76,6 +76,8 @@ module RbConfig
   CONFIG["ARCH_FLAG"] = ""
   CONFIG["DLDFLAGS"] = ""
   CONFIG["ALLOCA"] = ""
+  CONFIG["RMALL"] = "rm -fr"
+  CONFIG["RMDIRS"] = "$(top_srcdir)/tool/rmdirs"
   CONFIG["MAKEDIRS"] = "mkdir -p"
   CONFIG["CP"] = "cp"
   CONFIG["RM"] = "rm -f"
