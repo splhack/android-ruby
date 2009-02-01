@@ -6,7 +6,7 @@ RUBY_C_INCLUDE:= \
 	external/openssl/include \
 	external/zlib \
 	$(LOCAL_PATH)/$(RUBY_TOP) \
-	$(LOCAL_PATH)/$(RUBY_TOP)/.ext/include/arm-linux \
+	$(LOCAL_PATH)/$(RUBY_TOP)/.ext/include/$(TARGET_ARCH)-linux \
 	$(LOCAL_PATH)/$(RUBY_TOP)/include
 
 RUBY_CFLAGS+= \
@@ -108,7 +108,7 @@ include $(BUILD_SHARED_LIBRARY)
 
 # ------------------------------------------------------------------------------
 include $(CLEAR_VARS)
-LOCAL_MODULE:= ruby/enc/encdb
+LOCAL_MODULE:= ruby/$(TARGET_ARCH)-linux/enc/encdb
 LOCAL_SRC_FILES:= $(RUBY_TOP)/enc/encdb.c
 LOCAL_SHARED_LIBRARIES:= libruby
 LOCAL_C_INCLUDES+= $(RUBY_C_INCLUDE)
@@ -118,7 +118,7 @@ include $(BUILD_SHARED_LIBRARY)
 
 # ------------------------------------------------------------------------------
 include $(CLEAR_VARS)
-LOCAL_MODULE:= ruby/enc/big5
+LOCAL_MODULE:= ruby/$(TARGET_ARCH)-linux/enc/big5
 LOCAL_SRC_FILES:= $(RUBY_TOP)/enc/big5.c
 LOCAL_SHARED_LIBRARIES:= libruby
 LOCAL_C_INCLUDES+= $(RUBY_C_INCLUDE)
@@ -128,7 +128,7 @@ include $(BUILD_SHARED_LIBRARY)
 
 # ------------------------------------------------------------------------------
 include $(CLEAR_VARS)
-LOCAL_MODULE:= ruby/enc/cp949
+LOCAL_MODULE:= ruby/$(TARGET_ARCH)-linux/enc/cp949
 LOCAL_SRC_FILES:= $(RUBY_TOP)/enc/cp949.c
 LOCAL_SHARED_LIBRARIES:= libruby
 LOCAL_C_INCLUDES+= $(RUBY_C_INCLUDE)
@@ -138,7 +138,7 @@ include $(BUILD_SHARED_LIBRARY)
 
 # ------------------------------------------------------------------------------
 include $(CLEAR_VARS)
-LOCAL_MODULE:= ruby/enc/emacs_mule
+LOCAL_MODULE:= ruby/$(TARGET_ARCH)-linux/enc/emacs_mule
 LOCAL_SRC_FILES:= $(RUBY_TOP)/enc/emacs_mule.c
 LOCAL_SHARED_LIBRARIES:= libruby
 LOCAL_C_INCLUDES+= $(RUBY_C_INCLUDE)
@@ -148,7 +148,7 @@ include $(BUILD_SHARED_LIBRARY)
 
 # ------------------------------------------------------------------------------
 include $(CLEAR_VARS)
-LOCAL_MODULE:= ruby/enc/euc_jp
+LOCAL_MODULE:= ruby/$(TARGET_ARCH)-linux/enc/euc_jp
 LOCAL_SRC_FILES:= $(RUBY_TOP)/enc/euc_jp.c
 LOCAL_SHARED_LIBRARIES:= libruby
 LOCAL_C_INCLUDES+= $(RUBY_C_INCLUDE)
@@ -158,7 +158,7 @@ include $(BUILD_SHARED_LIBRARY)
 
 # ------------------------------------------------------------------------------
 include $(CLEAR_VARS)
-LOCAL_MODULE:= ruby/enc/euc_kr
+LOCAL_MODULE:= ruby/$(TARGET_ARCH)-linux/enc/euc_kr
 LOCAL_SRC_FILES:= $(RUBY_TOP)/enc/euc_kr.c
 LOCAL_SHARED_LIBRARIES:= libruby
 LOCAL_C_INCLUDES+= $(RUBY_C_INCLUDE)
@@ -168,7 +168,7 @@ include $(BUILD_SHARED_LIBRARY)
 
 # ------------------------------------------------------------------------------
 include $(CLEAR_VARS)
-LOCAL_MODULE:= ruby/enc/euc_tw
+LOCAL_MODULE:= ruby/$(TARGET_ARCH)-linux/enc/euc_tw
 LOCAL_SRC_FILES:= $(RUBY_TOP)/enc/euc_tw.c
 LOCAL_SHARED_LIBRARIES:= libruby
 LOCAL_C_INCLUDES+= $(RUBY_C_INCLUDE)
@@ -178,7 +178,7 @@ include $(BUILD_SHARED_LIBRARY)
 
 # ------------------------------------------------------------------------------
 include $(CLEAR_VARS)
-LOCAL_MODULE:= ruby/enc/gb2312
+LOCAL_MODULE:= ruby/$(TARGET_ARCH)-linux/enc/gb2312
 LOCAL_SRC_FILES:= $(RUBY_TOP)/enc/gb2312.c
 LOCAL_SHARED_LIBRARIES:= libruby
 LOCAL_C_INCLUDES+= $(RUBY_C_INCLUDE)
@@ -188,7 +188,7 @@ include $(BUILD_SHARED_LIBRARY)
 
 # ------------------------------------------------------------------------------
 include $(CLEAR_VARS)
-LOCAL_MODULE:= ruby/enc/gb18030
+LOCAL_MODULE:= ruby/$(TARGET_ARCH)-linux/enc/gb18030
 LOCAL_SRC_FILES:= $(RUBY_TOP)/enc/gb18030.c
 LOCAL_SHARED_LIBRARIES:= libruby
 LOCAL_C_INCLUDES+= $(RUBY_C_INCLUDE)
@@ -198,7 +198,7 @@ include $(BUILD_SHARED_LIBRARY)
 
 # ------------------------------------------------------------------------------
 include $(CLEAR_VARS)
-LOCAL_MODULE:= ruby/enc/gbk
+LOCAL_MODULE:= ruby/$(TARGET_ARCH)-linux/enc/gbk
 LOCAL_SRC_FILES:= $(RUBY_TOP)/enc/gbk.c
 LOCAL_SHARED_LIBRARIES:= libruby
 LOCAL_C_INCLUDES+= $(RUBY_C_INCLUDE)
@@ -208,7 +208,7 @@ include $(BUILD_SHARED_LIBRARY)
 
 # ------------------------------------------------------------------------------
 include $(CLEAR_VARS)
-LOCAL_MODULE:= ruby/enc/iso_8859_1
+LOCAL_MODULE:= ruby/$(TARGET_ARCH)-linux/enc/iso_8859_1
 LOCAL_SRC_FILES:= $(RUBY_TOP)/enc/iso_8859_1.c
 LOCAL_SHARED_LIBRARIES:= libruby
 LOCAL_C_INCLUDES+= $(RUBY_C_INCLUDE)
@@ -218,7 +218,7 @@ include $(BUILD_SHARED_LIBRARY)
 
 # ------------------------------------------------------------------------------
 include $(CLEAR_VARS)
-LOCAL_MODULE:= ruby/enc/iso_8859_2
+LOCAL_MODULE:= ruby/$(TARGET_ARCH)-linux/enc/iso_8859_2
 LOCAL_SRC_FILES:= $(RUBY_TOP)/enc/iso_8859_2.c
 LOCAL_SHARED_LIBRARIES:= libruby
 LOCAL_C_INCLUDES+= $(RUBY_C_INCLUDE)
@@ -228,7 +228,7 @@ include $(BUILD_SHARED_LIBRARY)
 
 # ------------------------------------------------------------------------------
 include $(CLEAR_VARS)
-LOCAL_MODULE:= ruby/enc/iso_8859_3
+LOCAL_MODULE:= ruby/$(TARGET_ARCH)-linux/enc/iso_8859_3
 LOCAL_SRC_FILES:= $(RUBY_TOP)/enc/iso_8859_3.c
 LOCAL_SHARED_LIBRARIES:= libruby
 LOCAL_C_INCLUDES+= $(RUBY_C_INCLUDE)
@@ -238,7 +238,7 @@ include $(BUILD_SHARED_LIBRARY)
 
 # ------------------------------------------------------------------------------
 include $(CLEAR_VARS)
-LOCAL_MODULE:= ruby/enc/iso_8859_4
+LOCAL_MODULE:= ruby/$(TARGET_ARCH)-linux/enc/iso_8859_4
 LOCAL_SRC_FILES:= $(RUBY_TOP)/enc/iso_8859_4.c
 LOCAL_SHARED_LIBRARIES:= libruby
 LOCAL_C_INCLUDES+= $(RUBY_C_INCLUDE)
@@ -248,7 +248,7 @@ include $(BUILD_SHARED_LIBRARY)
 
 # ------------------------------------------------------------------------------
 include $(CLEAR_VARS)
-LOCAL_MODULE:= ruby/enc/iso_8859_5
+LOCAL_MODULE:= ruby/$(TARGET_ARCH)-linux/enc/iso_8859_5
 LOCAL_SRC_FILES:= $(RUBY_TOP)/enc/iso_8859_5.c
 LOCAL_SHARED_LIBRARIES:= libruby
 LOCAL_C_INCLUDES+= $(RUBY_C_INCLUDE)
@@ -258,7 +258,7 @@ include $(BUILD_SHARED_LIBRARY)
 
 # ------------------------------------------------------------------------------
 include $(CLEAR_VARS)
-LOCAL_MODULE:= ruby/enc/iso_8859_6
+LOCAL_MODULE:= ruby/$(TARGET_ARCH)-linux/enc/iso_8859_6
 LOCAL_SRC_FILES:= $(RUBY_TOP)/enc/iso_8859_6.c
 LOCAL_SHARED_LIBRARIES:= libruby
 LOCAL_C_INCLUDES+= $(RUBY_C_INCLUDE)
@@ -268,7 +268,7 @@ include $(BUILD_SHARED_LIBRARY)
 
 # ------------------------------------------------------------------------------
 include $(CLEAR_VARS)
-LOCAL_MODULE:= ruby/enc/iso_8859_7
+LOCAL_MODULE:= ruby/$(TARGET_ARCH)-linux/enc/iso_8859_7
 LOCAL_SRC_FILES:= $(RUBY_TOP)/enc/iso_8859_7.c
 LOCAL_SHARED_LIBRARIES:= libruby
 LOCAL_C_INCLUDES+= $(RUBY_C_INCLUDE)
@@ -278,7 +278,7 @@ include $(BUILD_SHARED_LIBRARY)
 
 # ------------------------------------------------------------------------------
 include $(CLEAR_VARS)
-LOCAL_MODULE:= ruby/enc/iso_8859_8
+LOCAL_MODULE:= ruby/$(TARGET_ARCH)-linux/enc/iso_8859_8
 LOCAL_SRC_FILES:= $(RUBY_TOP)/enc/iso_8859_8.c
 LOCAL_SHARED_LIBRARIES:= libruby
 LOCAL_C_INCLUDES+= $(RUBY_C_INCLUDE)
@@ -288,7 +288,7 @@ include $(BUILD_SHARED_LIBRARY)
 
 # ------------------------------------------------------------------------------
 include $(CLEAR_VARS)
-LOCAL_MODULE:= ruby/enc/iso_8859_9
+LOCAL_MODULE:= ruby/$(TARGET_ARCH)-linux/enc/iso_8859_9
 LOCAL_SRC_FILES:= $(RUBY_TOP)/enc/iso_8859_9.c
 LOCAL_SHARED_LIBRARIES:= libruby
 LOCAL_C_INCLUDES+= $(RUBY_C_INCLUDE)
@@ -298,7 +298,7 @@ include $(BUILD_SHARED_LIBRARY)
 
 # ------------------------------------------------------------------------------
 include $(CLEAR_VARS)
-LOCAL_MODULE:= ruby/enc/iso_8859_10
+LOCAL_MODULE:= ruby/$(TARGET_ARCH)-linux/enc/iso_8859_10
 LOCAL_SRC_FILES:= $(RUBY_TOP)/enc/iso_8859_10.c
 LOCAL_SHARED_LIBRARIES:= libruby
 LOCAL_C_INCLUDES+= $(RUBY_C_INCLUDE)
@@ -308,7 +308,7 @@ include $(BUILD_SHARED_LIBRARY)
 
 # ------------------------------------------------------------------------------
 include $(CLEAR_VARS)
-LOCAL_MODULE:= ruby/enc/iso_8859_11
+LOCAL_MODULE:= ruby/$(TARGET_ARCH)-linux/enc/iso_8859_11
 LOCAL_SRC_FILES:= $(RUBY_TOP)/enc/iso_8859_11.c
 LOCAL_SHARED_LIBRARIES:= libruby
 LOCAL_C_INCLUDES+= $(RUBY_C_INCLUDE)
@@ -318,7 +318,7 @@ include $(BUILD_SHARED_LIBRARY)
 
 # ------------------------------------------------------------------------------
 include $(CLEAR_VARS)
-LOCAL_MODULE:= ruby/enc/iso_8859_13
+LOCAL_MODULE:= ruby/$(TARGET_ARCH)-linux/enc/iso_8859_13
 LOCAL_SRC_FILES:= $(RUBY_TOP)/enc/iso_8859_13.c
 LOCAL_SHARED_LIBRARIES:= libruby
 LOCAL_C_INCLUDES+= $(RUBY_C_INCLUDE)
@@ -328,7 +328,7 @@ include $(BUILD_SHARED_LIBRARY)
 
 # ------------------------------------------------------------------------------
 include $(CLEAR_VARS)
-LOCAL_MODULE:= ruby/enc/iso_8859_14
+LOCAL_MODULE:= ruby/$(TARGET_ARCH)-linux/enc/iso_8859_14
 LOCAL_SRC_FILES:= $(RUBY_TOP)/enc/iso_8859_14.c
 LOCAL_SHARED_LIBRARIES:= libruby
 LOCAL_C_INCLUDES+= $(RUBY_C_INCLUDE)
@@ -338,7 +338,7 @@ include $(BUILD_SHARED_LIBRARY)
 
 # ------------------------------------------------------------------------------
 include $(CLEAR_VARS)
-LOCAL_MODULE:= ruby/enc/iso_8859_15
+LOCAL_MODULE:= ruby/$(TARGET_ARCH)-linux/enc/iso_8859_15
 LOCAL_SRC_FILES:= $(RUBY_TOP)/enc/iso_8859_15.c
 LOCAL_SHARED_LIBRARIES:= libruby
 LOCAL_C_INCLUDES+= $(RUBY_C_INCLUDE)
@@ -348,7 +348,7 @@ include $(BUILD_SHARED_LIBRARY)
 
 # ------------------------------------------------------------------------------
 include $(CLEAR_VARS)
-LOCAL_MODULE:= ruby/enc/iso_8859_16
+LOCAL_MODULE:= ruby/$(TARGET_ARCH)-linux/enc/iso_8859_16
 LOCAL_SRC_FILES:= $(RUBY_TOP)/enc/iso_8859_16.c
 LOCAL_SHARED_LIBRARIES:= libruby
 LOCAL_C_INCLUDES+= $(RUBY_C_INCLUDE)
@@ -358,7 +358,7 @@ include $(BUILD_SHARED_LIBRARY)
 
 # ------------------------------------------------------------------------------
 include $(CLEAR_VARS)
-LOCAL_MODULE:= ruby/enc/koi8_r
+LOCAL_MODULE:= ruby/$(TARGET_ARCH)-linux/enc/koi8_r
 LOCAL_SRC_FILES:= $(RUBY_TOP)/enc/koi8_r.c
 LOCAL_SHARED_LIBRARIES:= libruby
 LOCAL_C_INCLUDES+= $(RUBY_C_INCLUDE)
@@ -368,7 +368,7 @@ include $(BUILD_SHARED_LIBRARY)
 
 # ------------------------------------------------------------------------------
 include $(CLEAR_VARS)
-LOCAL_MODULE:= ruby/enc/koi8_u
+LOCAL_MODULE:= ruby/$(TARGET_ARCH)-linux/enc/koi8_u
 LOCAL_SRC_FILES:= $(RUBY_TOP)/enc/koi8_u.c
 LOCAL_SHARED_LIBRARIES:= libruby
 LOCAL_C_INCLUDES+= $(RUBY_C_INCLUDE)
@@ -378,7 +378,7 @@ include $(BUILD_SHARED_LIBRARY)
 
 # ------------------------------------------------------------------------------
 include $(CLEAR_VARS)
-LOCAL_MODULE:= ruby/enc/shift_jis
+LOCAL_MODULE:= ruby/$(TARGET_ARCH)-linux/enc/shift_jis
 LOCAL_SRC_FILES:= $(RUBY_TOP)/enc/shift_jis.c
 LOCAL_SHARED_LIBRARIES:= libruby
 LOCAL_C_INCLUDES+= $(RUBY_C_INCLUDE)
@@ -388,7 +388,7 @@ include $(BUILD_SHARED_LIBRARY)
 
 # ------------------------------------------------------------------------------
 include $(CLEAR_VARS)
-LOCAL_MODULE:= ruby/enc/utf_16be
+LOCAL_MODULE:= ruby/$(TARGET_ARCH)-linux/enc/utf_16be
 LOCAL_SRC_FILES:= $(RUBY_TOP)/enc/utf_16be.c
 LOCAL_SHARED_LIBRARIES:= libruby
 LOCAL_C_INCLUDES+= $(RUBY_C_INCLUDE)
@@ -398,7 +398,7 @@ include $(BUILD_SHARED_LIBRARY)
 
 # ------------------------------------------------------------------------------
 include $(CLEAR_VARS)
-LOCAL_MODULE:= ruby/enc/utf_16le
+LOCAL_MODULE:= ruby/$(TARGET_ARCH)-linux/enc/utf_16le
 LOCAL_SRC_FILES:= $(RUBY_TOP)/enc/utf_16le.c
 LOCAL_SHARED_LIBRARIES:= libruby
 LOCAL_C_INCLUDES+= $(RUBY_C_INCLUDE)
@@ -408,7 +408,7 @@ include $(BUILD_SHARED_LIBRARY)
 
 # ------------------------------------------------------------------------------
 include $(CLEAR_VARS)
-LOCAL_MODULE:= ruby/enc/utf_32be
+LOCAL_MODULE:= ruby/$(TARGET_ARCH)-linux/enc/utf_32be
 LOCAL_SRC_FILES:= $(RUBY_TOP)/enc/utf_32be.c
 LOCAL_SHARED_LIBRARIES:= libruby
 LOCAL_C_INCLUDES+= $(RUBY_C_INCLUDE)
@@ -418,7 +418,7 @@ include $(BUILD_SHARED_LIBRARY)
 
 # ------------------------------------------------------------------------------
 include $(CLEAR_VARS)
-LOCAL_MODULE:= ruby/enc/utf_32le
+LOCAL_MODULE:= ruby/$(TARGET_ARCH)-linux/enc/utf_32le
 LOCAL_SRC_FILES:= $(RUBY_TOP)/enc/utf_32le.c
 LOCAL_SHARED_LIBRARIES:= libruby
 LOCAL_C_INCLUDES+= $(RUBY_C_INCLUDE)
@@ -428,7 +428,7 @@ include $(BUILD_SHARED_LIBRARY)
 
 # ------------------------------------------------------------------------------
 include $(CLEAR_VARS)
-LOCAL_MODULE:= ruby/enc/windows_1251
+LOCAL_MODULE:= ruby/$(TARGET_ARCH)-linux/enc/windows_1251
 LOCAL_SRC_FILES:= $(RUBY_TOP)/enc/windows_1251.c
 LOCAL_SHARED_LIBRARIES:= libruby
 LOCAL_C_INCLUDES+= $(RUBY_C_INCLUDE)
@@ -438,7 +438,7 @@ include $(BUILD_SHARED_LIBRARY)
 
 # ------------------------------------------------------------------------------
 include $(CLEAR_VARS)
-LOCAL_MODULE:= ruby/enc/trans/transdb
+LOCAL_MODULE:= ruby/$(TARGET_ARCH)-linux/enc/trans/transdb
 LOCAL_SRC_FILES:= $(RUBY_TOP)/enc/trans/transdb.c
 LOCAL_SHARED_LIBRARIES:= libruby
 LOCAL_C_INCLUDES+= $(RUBY_C_INCLUDE)
@@ -448,7 +448,7 @@ include $(BUILD_SHARED_LIBRARY)
 
 # ------------------------------------------------------------------------------
 include $(CLEAR_VARS)
-LOCAL_MODULE:= ruby/enc/trans/big5
+LOCAL_MODULE:= ruby/$(TARGET_ARCH)-linux/enc/trans/big5
 LOCAL_SRC_FILES:= $(RUBY_TOP)/enc/trans/big5.c
 LOCAL_SHARED_LIBRARIES:= libruby
 LOCAL_C_INCLUDES+= $(RUBY_C_INCLUDE)
@@ -458,7 +458,7 @@ include $(BUILD_SHARED_LIBRARY)
 
 # ------------------------------------------------------------------------------
 include $(CLEAR_VARS)
-LOCAL_MODULE:= ruby/enc/trans/chinese
+LOCAL_MODULE:= ruby/$(TARGET_ARCH)-linux/enc/trans/chinese
 LOCAL_SRC_FILES:= $(RUBY_TOP)/enc/trans/chinese.c
 LOCAL_SHARED_LIBRARIES:= libruby
 LOCAL_C_INCLUDES+= $(RUBY_C_INCLUDE)
@@ -468,7 +468,7 @@ include $(BUILD_SHARED_LIBRARY)
 
 # ------------------------------------------------------------------------------
 include $(CLEAR_VARS)
-LOCAL_MODULE:= ruby/enc/trans/escape
+LOCAL_MODULE:= ruby/$(TARGET_ARCH)-linux/enc/trans/escape
 LOCAL_SRC_FILES:= $(RUBY_TOP)/enc/trans/escape.c
 LOCAL_SHARED_LIBRARIES:= libruby
 LOCAL_C_INCLUDES+= $(RUBY_C_INCLUDE)
@@ -478,7 +478,7 @@ include $(BUILD_SHARED_LIBRARY)
 
 # ------------------------------------------------------------------------------
 include $(CLEAR_VARS)
-LOCAL_MODULE:= ruby/enc/trans/gb18030
+LOCAL_MODULE:= ruby/$(TARGET_ARCH)-linux/enc/trans/gb18030
 LOCAL_SRC_FILES:= $(RUBY_TOP)/enc/trans/gb18030.c
 LOCAL_SHARED_LIBRARIES:= libruby
 LOCAL_C_INCLUDES+= $(RUBY_C_INCLUDE)
@@ -488,7 +488,7 @@ include $(BUILD_SHARED_LIBRARY)
 
 # ------------------------------------------------------------------------------
 include $(CLEAR_VARS)
-LOCAL_MODULE:= ruby/enc/trans/gbk
+LOCAL_MODULE:= ruby/$(TARGET_ARCH)-linux/enc/trans/gbk
 LOCAL_SRC_FILES:= $(RUBY_TOP)/enc/trans/gbk.c
 LOCAL_SHARED_LIBRARIES:= libruby
 LOCAL_C_INCLUDES+= $(RUBY_C_INCLUDE)
@@ -498,7 +498,7 @@ include $(BUILD_SHARED_LIBRARY)
 
 # ------------------------------------------------------------------------------
 include $(CLEAR_VARS)
-LOCAL_MODULE:= ruby/enc/trans/iso2022
+LOCAL_MODULE:= ruby/$(TARGET_ARCH)-linux/enc/trans/iso2022
 LOCAL_SRC_FILES:= $(RUBY_TOP)/enc/trans/iso2022.c
 LOCAL_SHARED_LIBRARIES:= libruby
 LOCAL_C_INCLUDES+= $(RUBY_C_INCLUDE)
@@ -508,7 +508,7 @@ include $(BUILD_SHARED_LIBRARY)
 
 # ------------------------------------------------------------------------------
 include $(CLEAR_VARS)
-LOCAL_MODULE:= ruby/enc/trans/japanese
+LOCAL_MODULE:= ruby/$(TARGET_ARCH)-linux/enc/trans/japanese
 LOCAL_SRC_FILES:= $(RUBY_TOP)/enc/trans/japanese.c
 LOCAL_SHARED_LIBRARIES:= libruby
 LOCAL_C_INCLUDES+= $(RUBY_C_INCLUDE)
@@ -518,7 +518,7 @@ include $(BUILD_SHARED_LIBRARY)
 
 # ------------------------------------------------------------------------------
 include $(CLEAR_VARS)
-LOCAL_MODULE:= ruby/enc/trans/japanese_euc
+LOCAL_MODULE:= ruby/$(TARGET_ARCH)-linux/enc/trans/japanese_euc
 LOCAL_SRC_FILES:= $(RUBY_TOP)/enc/trans/japanese_euc.c
 LOCAL_SHARED_LIBRARIES:= libruby
 LOCAL_C_INCLUDES+= $(RUBY_C_INCLUDE)
@@ -528,7 +528,7 @@ include $(BUILD_SHARED_LIBRARY)
 
 # ------------------------------------------------------------------------------
 include $(CLEAR_VARS)
-LOCAL_MODULE:= ruby/enc/trans/japanese_sjis
+LOCAL_MODULE:= ruby/$(TARGET_ARCH)-linux/enc/trans/japanese_sjis
 LOCAL_SRC_FILES:= $(RUBY_TOP)/enc/trans/japanese_sjis.c
 LOCAL_SHARED_LIBRARIES:= libruby
 LOCAL_C_INCLUDES+= $(RUBY_C_INCLUDE)
@@ -538,7 +538,7 @@ include $(BUILD_SHARED_LIBRARY)
 
 # ------------------------------------------------------------------------------
 include $(CLEAR_VARS)
-LOCAL_MODULE:= ruby/enc/trans/korean
+LOCAL_MODULE:= ruby/$(TARGET_ARCH)-linux/enc/trans/korean
 LOCAL_SRC_FILES:= $(RUBY_TOP)/enc/trans/korean.c
 LOCAL_SHARED_LIBRARIES:= libruby
 LOCAL_C_INCLUDES+= $(RUBY_C_INCLUDE)
@@ -548,7 +548,7 @@ include $(BUILD_SHARED_LIBRARY)
 
 # ------------------------------------------------------------------------------
 include $(CLEAR_VARS)
-LOCAL_MODULE:= ruby/enc/trans/single_byte
+LOCAL_MODULE:= ruby/$(TARGET_ARCH)-linux/enc/trans/single_byte
 LOCAL_SRC_FILES:= $(RUBY_TOP)/enc/trans/single_byte.c
 LOCAL_SHARED_LIBRARIES:= libruby
 LOCAL_C_INCLUDES+= $(RUBY_C_INCLUDE)
@@ -558,7 +558,7 @@ include $(BUILD_SHARED_LIBRARY)
 
 # ------------------------------------------------------------------------------
 include $(CLEAR_VARS)
-LOCAL_MODULE:= ruby/enc/trans/utf_16_32
+LOCAL_MODULE:= ruby/$(TARGET_ARCH)-linux/enc/trans/utf_16_32
 LOCAL_SRC_FILES:= $(RUBY_TOP)/enc/trans/utf_16_32.c
 LOCAL_SHARED_LIBRARIES:= libruby
 LOCAL_C_INCLUDES+= $(RUBY_C_INCLUDE)
@@ -568,7 +568,7 @@ include $(BUILD_SHARED_LIBRARY)
 
 # ------------------------------------------------------------------------------
 include $(CLEAR_VARS)
-LOCAL_MODULE:= ruby/bigdecimal
+LOCAL_MODULE:= ruby/$(TARGET_ARCH)-linux/bigdecimal
 LOCAL_SRC_FILES:= $(RUBY_TOP)/ext/bigdecimal/bigdecimal.c
 LOCAL_SHARED_LIBRARIES:= libruby
 LOCAL_C_INCLUDES+= $(RUBY_C_INCLUDE) $(LOCAL_PATH)/$(RUBY_TOP)/ext/bigdecimal
@@ -578,7 +578,7 @@ include $(BUILD_SHARED_LIBRARY)
 
 # ------------------------------------------------------------------------------
 include $(CLEAR_VARS)
-LOCAL_MODULE:= ruby/continuation
+LOCAL_MODULE:= ruby/$(TARGET_ARCH)-linux/continuation
 LOCAL_SRC_FILES:= $(RUBY_TOP)/ext/continuation/continuation.c
 LOCAL_SHARED_LIBRARIES:= libruby
 LOCAL_C_INCLUDES+= $(RUBY_C_INCLUDE) $(LOCAL_PATH)/$(RUBY_TOP)/ext/continuation
@@ -588,7 +588,7 @@ include $(BUILD_SHARED_LIBRARY)
 
 # ------------------------------------------------------------------------------
 include $(CLEAR_VARS)
-LOCAL_MODULE:= ruby/coverage
+LOCAL_MODULE:= ruby/$(TARGET_ARCH)-linux/coverage
 LOCAL_SRC_FILES:= $(RUBY_TOP)/ext/coverage/coverage.c
 LOCAL_SHARED_LIBRARIES:= libruby
 LOCAL_C_INCLUDES+= $(RUBY_C_INCLUDE) $(LOCAL_PATH)/$(RUBY_TOP)/ext/coverage
@@ -598,7 +598,7 @@ include $(BUILD_SHARED_LIBRARY)
 
 # ------------------------------------------------------------------------------
 include $(CLEAR_VARS)
-LOCAL_MODULE:= ruby/digest
+LOCAL_MODULE:= ruby/$(TARGET_ARCH)-linux/digest
 LOCAL_SRC_FILES:= $(RUBY_TOP)/ext/digest/digest.c
 LOCAL_SHARED_LIBRARIES:= libruby
 LOCAL_C_INCLUDES+= $(RUBY_C_INCLUDE) $(LOCAL_PATH)/$(RUBY_TOP)/ext/digest
@@ -608,7 +608,7 @@ include $(BUILD_SHARED_LIBRARY)
 
 # ------------------------------------------------------------------------------
 include $(CLEAR_VARS)
-LOCAL_MODULE:= ruby/digest/bubblebabble
+LOCAL_MODULE:= ruby/$(TARGET_ARCH)-linux/digest/bubblebabble
 LOCAL_SRC_FILES:= $(RUBY_TOP)/ext/digest/bubblebabble/bubblebabble.c
 LOCAL_SHARED_LIBRARIES:= libruby
 LOCAL_C_INCLUDES+= $(RUBY_C_INCLUDE) \
@@ -620,7 +620,7 @@ include $(BUILD_SHARED_LIBRARY)
 
 # ------------------------------------------------------------------------------
 include $(CLEAR_VARS)
-LOCAL_MODULE:= ruby/digest/md5
+LOCAL_MODULE:= ruby/$(TARGET_ARCH)-linux/digest/md5
 LOCAL_SRC_FILES:= \
 	$(RUBY_TOP)/ext/digest/md5/md5init.c \
 	$(RUBY_TOP)/ext/digest/md5/md5ossl.c
@@ -634,7 +634,7 @@ include $(BUILD_SHARED_LIBRARY)
 
 # ------------------------------------------------------------------------------
 include $(CLEAR_VARS)
-LOCAL_MODULE:= ruby/digest/rmd160
+LOCAL_MODULE:= ruby/$(TARGET_ARCH)-linux/digest/rmd160
 LOCAL_SRC_FILES:= \
 	$(RUBY_TOP)/ext/digest/rmd160/rmd160init.c \
 	$(RUBY_TOP)/ext/digest/rmd160/rmd160ossl.c
@@ -648,7 +648,7 @@ include $(BUILD_SHARED_LIBRARY)
 
 # ------------------------------------------------------------------------------
 include $(CLEAR_VARS)
-LOCAL_MODULE:= ruby/digest/sha1
+LOCAL_MODULE:= ruby/$(TARGET_ARCH)-linux/digest/sha1
 LOCAL_SRC_FILES:= \
 	$(RUBY_TOP)/ext/digest/sha1/sha1init.c \
 	$(RUBY_TOP)/ext/digest/sha1/sha1ossl.c
@@ -662,7 +662,7 @@ include $(BUILD_SHARED_LIBRARY)
 
 # ------------------------------------------------------------------------------
 include $(CLEAR_VARS)
-LOCAL_MODULE:= ruby/digest/sha2
+LOCAL_MODULE:= ruby/$(TARGET_ARCH)-linux/digest/sha2
 LOCAL_SRC_FILES:= \
 	$(RUBY_TOP)/ext/digest/sha2/sha2.c \
 	$(RUBY_TOP)/ext/digest/sha2/sha2init.c
@@ -676,7 +676,7 @@ include $(BUILD_SHARED_LIBRARY)
 
 # ------------------------------------------------------------------------------
 include $(CLEAR_VARS)
-LOCAL_MODULE:= ruby/dl
+LOCAL_MODULE:= ruby/$(TARGET_ARCH)-linux/dl
 LOCAL_SRC_FILES:= \
 	$(RUBY_TOP)/ext/dl/cfunc.c \
 	$(RUBY_TOP)/ext/dl/dl.c \
@@ -699,7 +699,7 @@ include $(BUILD_SHARED_LIBRARY)
 
 # ------------------------------------------------------------------------------
 include $(CLEAR_VARS)
-LOCAL_MODULE:= ruby/etc
+LOCAL_MODULE:= ruby/$(TARGET_ARCH)-linux/etc
 LOCAL_SRC_FILES:= $(RUBY_TOP)/ext/etc/etc.c
 LOCAL_SHARED_LIBRARIES:= libruby
 LOCAL_C_INCLUDES+= $(RUBY_C_INCLUDE) $(LOCAL_PATH)/$(RUBY_TOP)/ext/etc
@@ -709,7 +709,7 @@ include $(BUILD_SHARED_LIBRARY)
 
 # ------------------------------------------------------------------------------
 include $(CLEAR_VARS)
-LOCAL_MODULE:= ruby/fcntl
+LOCAL_MODULE:= ruby/$(TARGET_ARCH)-linux/fcntl
 LOCAL_SRC_FILES:= $(RUBY_TOP)/ext/fcntl/fcntl.c
 LOCAL_SHARED_LIBRARIES:= libruby
 LOCAL_C_INCLUDES+= $(RUBY_C_INCLUDE) $(LOCAL_PATH)/$(RUBY_TOP)/ext/fcntl
@@ -719,7 +719,7 @@ include $(BUILD_SHARED_LIBRARY)
 
 # ------------------------------------------------------------------------------
 include $(CLEAR_VARS)
-LOCAL_MODULE:= ruby/fiber
+LOCAL_MODULE:= ruby/$(TARGET_ARCH)-linux/fiber
 LOCAL_SRC_FILES:= $(RUBY_TOP)/ext/fiber/fiber.c
 LOCAL_SHARED_LIBRARIES:= libruby
 LOCAL_C_INCLUDES+= $(RUBY_C_INCLUDE) $(LOCAL_PATH)/$(RUBY_TOP)/ext/fiber
@@ -729,7 +729,7 @@ include $(BUILD_SHARED_LIBRARY)
 
 # ------------------------------------------------------------------------------
 include $(CLEAR_VARS)
-LOCAL_MODULE:= ruby/io/wait
+LOCAL_MODULE:= ruby/$(TARGET_ARCH)-linux/io/wait
 LOCAL_SRC_FILES:= $(RUBY_TOP)/ext/io/wait/wait.c
 LOCAL_SHARED_LIBRARIES:= libruby
 LOCAL_C_INCLUDES+= $(RUBY_C_INCLUDE) $(LOCAL_PATH)/$(RUBY_TOP)/ext/io/wait
@@ -739,7 +739,7 @@ include $(BUILD_SHARED_LIBRARY)
 
 # ------------------------------------------------------------------------------
 include $(CLEAR_VARS)
-LOCAL_MODULE:= ruby/json/ext/generator
+LOCAL_MODULE:= ruby/$(TARGET_ARCH)-linux/json/ext/generator
 LOCAL_SRC_FILES:= \
 	$(RUBY_TOP)/ext/json/ext/generator/unicode.c \
 	$(RUBY_TOP)/ext/json/ext/generator/generator.c
@@ -752,7 +752,7 @@ include $(BUILD_SHARED_LIBRARY)
 
 # ------------------------------------------------------------------------------
 include $(CLEAR_VARS)
-LOCAL_MODULE:= ruby/json/ext/parser
+LOCAL_MODULE:= ruby/$(TARGET_ARCH)-linux/json/ext/parser
 LOCAL_SRC_FILES:= \
 	$(RUBY_TOP)/ext/json/ext/parser/parser.c \
 	$(RUBY_TOP)/ext/json/ext/parser/unicode.c
@@ -765,7 +765,7 @@ include $(BUILD_SHARED_LIBRARY)
 
 # ------------------------------------------------------------------------------
 include $(CLEAR_VARS)
-LOCAL_MODULE:= ruby/mathn/complex
+LOCAL_MODULE:= ruby/$(TARGET_ARCH)-linux/mathn/complex
 LOCAL_SRC_FILES:= $(RUBY_TOP)/ext/mathn/complex/complex.c
 LOCAL_SHARED_LIBRARIES:= libruby
 LOCAL_C_INCLUDES+= $(RUBY_C_INCLUDE) \
@@ -776,7 +776,7 @@ include $(BUILD_SHARED_LIBRARY)
 
 # ------------------------------------------------------------------------------
 include $(CLEAR_VARS)
-LOCAL_MODULE:= ruby/mathn/rational
+LOCAL_MODULE:= ruby/$(TARGET_ARCH)-linux/mathn/rational
 LOCAL_SRC_FILES:= $(RUBY_TOP)/ext/mathn/rational/rational.c
 LOCAL_SHARED_LIBRARIES:= libruby
 LOCAL_C_INCLUDES+= $(RUBY_C_INCLUDE) \
@@ -787,7 +787,7 @@ include $(BUILD_SHARED_LIBRARY)
 
 # ------------------------------------------------------------------------------
 include $(CLEAR_VARS)
-LOCAL_MODULE:= ruby/nkf
+LOCAL_MODULE:= ruby/$(TARGET_ARCH)-linux/nkf
 LOCAL_SRC_FILES:= $(RUBY_TOP)/ext/nkf/nkf.c
 LOCAL_SHARED_LIBRARIES:= libruby
 LOCAL_C_INCLUDES+= $(RUBY_C_INCLUDE) $(LOCAL_PATH)/$(RUBY_TOP)/ext/nkf
@@ -797,7 +797,7 @@ include $(BUILD_SHARED_LIBRARY)
 
 # ------------------------------------------------------------------------------
 include $(CLEAR_VARS)
-LOCAL_MODULE:= ruby/openssl
+LOCAL_MODULE:= ruby/$(TARGET_ARCH)-linux/openssl
 LOCAL_SRC_FILES:= \
 	$(RUBY_TOP)/ext/openssl/ossl_bn.c \
 	$(RUBY_TOP)/ext/openssl/ossl_ocsp.c \
@@ -841,7 +841,7 @@ include $(BUILD_SHARED_LIBRARY)
 
 # ------------------------------------------------------------------------------
 include $(CLEAR_VARS)
-LOCAL_MODULE:= ruby/pty
+LOCAL_MODULE:= ruby/$(TARGET_ARCH)-linux/pty
 LOCAL_SRC_FILES:= $(RUBY_TOP)/ext/pty/pty.c
 LOCAL_SHARED_LIBRARIES:= libruby
 LOCAL_C_INCLUDES+= $(RUBY_C_INCLUDE) $(LOCAL_PATH)/$(RUBY_TOP)/ext/pty
@@ -851,7 +851,7 @@ include $(BUILD_SHARED_LIBRARY)
 
 # ------------------------------------------------------------------------------
 include $(CLEAR_VARS)
-LOCAL_MODULE:= ruby/racc/cparse
+LOCAL_MODULE:= ruby/$(TARGET_ARCH)-linux/racc/cparse
 LOCAL_SRC_FILES:= $(RUBY_TOP)/ext/racc/cparse/cparse.c
 LOCAL_SHARED_LIBRARIES:= libruby
 LOCAL_C_INCLUDES+= $(RUBY_C_INCLUDE) $(LOCAL_PATH)/$(RUBY_TOP)/ext/racc/cparse
@@ -861,7 +861,7 @@ include $(BUILD_SHARED_LIBRARY)
 
 # ------------------------------------------------------------------------------
 include $(CLEAR_VARS)
-LOCAL_MODULE:= ruby/ripper
+LOCAL_MODULE:= ruby/$(TARGET_ARCH)-linux/ripper
 LOCAL_SRC_FILES:= $(RUBY_TOP)/ext/ripper/ripper.c
 LOCAL_SHARED_LIBRARIES:= libruby
 LOCAL_C_INCLUDES+= $(RUBY_C_INCLUDE) $(LOCAL_PATH)/$(RUBY_TOP)/ext/ripper
@@ -871,7 +871,7 @@ include $(BUILD_SHARED_LIBRARY)
 
 # ------------------------------------------------------------------------------
 include $(CLEAR_VARS)
-LOCAL_MODULE:= ruby/sdbm
+LOCAL_MODULE:= ruby/$(TARGET_ARCH)-linux/sdbm
 LOCAL_SRC_FILES:= \
 	$(RUBY_TOP)/ext/sdbm/init.c \
 	$(RUBY_TOP)/ext/sdbm/_sdbm.c
@@ -883,7 +883,7 @@ include $(BUILD_SHARED_LIBRARY)
 
 # ------------------------------------------------------------------------------
 include $(CLEAR_VARS)
-LOCAL_MODULE:= ruby/socket
+LOCAL_MODULE:= ruby/$(TARGET_ARCH)-linux/socket
 LOCAL_SRC_FILES:= $(RUBY_TOP)/ext/socket/socket.c
 LOCAL_SHARED_LIBRARIES:= libruby
 LOCAL_C_INCLUDES+= $(RUBY_C_INCLUDE) $(LOCAL_PATH)/$(RUBY_TOP)/ext/socket
@@ -893,7 +893,7 @@ include $(BUILD_SHARED_LIBRARY)
 
 # ------------------------------------------------------------------------------
 include $(CLEAR_VARS)
-LOCAL_MODULE:= ruby/stringio
+LOCAL_MODULE:= ruby/$(TARGET_ARCH)-linux/stringio
 LOCAL_SRC_FILES:= $(RUBY_TOP)/ext/stringio/stringio.c
 LOCAL_SHARED_LIBRARIES:= libruby
 LOCAL_C_INCLUDES+= $(RUBY_C_INCLUDE) $(LOCAL_PATH)/$(RUBY_TOP)/ext/stringio
@@ -903,7 +903,7 @@ include $(BUILD_SHARED_LIBRARY)
 
 # ------------------------------------------------------------------------------
 include $(CLEAR_VARS)
-LOCAL_MODULE:= ruby/strscan
+LOCAL_MODULE:= ruby/$(TARGET_ARCH)-linux/strscan
 LOCAL_SRC_FILES:= $(RUBY_TOP)/ext/strscan/strscan.c
 LOCAL_SHARED_LIBRARIES:= libruby
 LOCAL_C_INCLUDES+= $(RUBY_C_INCLUDE) $(LOCAL_PATH)/$(RUBY_TOP)/ext/strscan
@@ -913,7 +913,7 @@ include $(BUILD_SHARED_LIBRARY)
 
 # ------------------------------------------------------------------------------
 include $(CLEAR_VARS)
-LOCAL_MODULE:= ruby/syck
+LOCAL_MODULE:= ruby/$(TARGET_ARCH)-linux/syck
 LOCAL_SRC_FILES:= \
 	$(RUBY_TOP)/ext/syck/handler.c \
 	$(RUBY_TOP)/ext/syck/rubyext.c \
@@ -933,7 +933,7 @@ include $(BUILD_SHARED_LIBRARY)
 
 # ------------------------------------------------------------------------------
 include $(CLEAR_VARS)
-LOCAL_MODULE:= ruby/syslog
+LOCAL_MODULE:= ruby/$(TARGET_ARCH)-linux/syslog
 LOCAL_SRC_FILES:= $(RUBY_TOP)/ext/syslog/syslog.c
 LOCAL_SHARED_LIBRARIES:= libruby
 LOCAL_C_INCLUDES+= $(RUBY_C_INCLUDE) $(LOCAL_PATH)/$(RUBY_TOP)/ext/syslog
@@ -943,7 +943,7 @@ include $(BUILD_SHARED_LIBRARY)
 
 # ------------------------------------------------------------------------------
 include $(CLEAR_VARS)
-LOCAL_MODULE:= ruby/zlib
+LOCAL_MODULE:= ruby/$(TARGET_ARCH)-linux/zlib
 LOCAL_SRC_FILES:= $(RUBY_TOP)/ext/zlib/zlib.c
 LOCAL_SHARED_LIBRARIES:= libruby libz
 LOCAL_C_INCLUDES+= $(RUBY_C_INCLUDE) $(LOCAL_PATH)/$(RUBY_TOP)/ext/zlib
