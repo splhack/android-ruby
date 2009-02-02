@@ -2,6 +2,9 @@ LOCAL_PATH:= $(call my-dir)
 
 RUBY_TOP:= ruby
 
+RUBY_INSTALL_PATH:= $(TARGET_OUT)/lib/ruby
+RUBY_SCRIPT_PATH:= $(LOCAL_PATH)/$(RUBY_TOP)/.ext/common
+
 RUBY_C_INCLUDE:= \
 	external/openssl/include \
 	external/zlib \
@@ -105,6 +108,61 @@ LOCAL_CFLAGS+= \
 LOCAL_PRELINK_MODULE:= false
 
 include $(BUILD_SHARED_LIBRARY)
+
+# ------------------------------------------------------------------------------
+include $(CLEAR_VARS)
+
+copy_from:= \
+	bigdecimal/jacobian.rb \
+	bigdecimal/ludcmp.rb \
+	bigdecimal/math.rb \
+	bigdecimal/newton.rb \
+	bigdecimal/util.rb \
+	digest.rb \
+	digest/hmac.rb \
+	digest/sha2.rb \
+	dl/callback.rb \
+	dl/cparser.rb \
+	dl/func.rb \
+	dl/import.rb \
+	dl/pack.rb \
+	dl/stack.rb \
+	dl/struct.rb \
+	dl/types.rb \
+	dl/value.rb \
+	expect.rb \
+	io/nonblock.rb \
+	json.rb \
+	json/add/core.rb \
+	json/add/rails.rb \
+	json/common.rb \
+	json/editor.rb \
+	json/ext.rb \
+	json/pure.rb \
+	json/pure/generator.rb \
+	json/pure/parser.rb \
+	json/version.rb \
+	kconv.rb \
+	openssl.rb \
+	openssl/bn.rb \
+	openssl/buffering.rb \
+	openssl/cipher.rb \
+	openssl/digest.rb \
+	openssl/ssl.rb \
+	openssl/x509.rb \
+	ripper.rb \
+	ripper/core.rb \
+	ripper/filter.rb \
+	ripper/lexer.rb \
+	ripper/sexp.rb
+
+copy_to:= $(addprefix $(RUBY_INSTALL_PATH)/,$(copy_from))
+copy_from:= $(addprefix $(RUBY_SCRIPT_PATH)/,$(copy_from))
+
+$(copy_to): $(RUBY_INSTALL_PATH)/% : $(RUBY_SCRIPT_PATH)/% | $(ACP)
+	$(transform-prebuilt-to-target)
+
+ALL_PREBUILT += $(copy_to)
 
 # ------------------------------------------------------------------------------
 include $(CLEAR_VARS)
