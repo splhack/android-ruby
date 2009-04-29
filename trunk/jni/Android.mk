@@ -11,6 +11,9 @@ LOCAL_SHARED_LIBRARIES:= \
 	libnativehelper \
 	libcutils \
 	libutils \
+	libdl
+
+LOCAL_STATIC_LIBRARIES:= \
 	libruby
 
 RUBY_TOP:= ruby
