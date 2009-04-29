@@ -95,8 +95,8 @@ LOCAL_SRC_FILES:= \
 	$(RUBY_TOP)/missing/flock.c \
 	$(RUBY_TOP)/dmyext.c
 
-LOCAL_SHARED_LIBRARIES:= \
-	libdl
+#LOCAL_SHARED_LIBRARIES:= \
+#	libdl
 
 LOCAL_C_INCLUDES+= \
 	$(RUBY_C_INCLUDE)
@@ -107,7 +107,8 @@ LOCAL_CFLAGS+= \
 
 LOCAL_PRELINK_MODULE:= false
 
-include $(BUILD_SHARED_LIBRARY)
+#include $(BUILD_SHARED_LIBRARY)
+include $(BUILD_STATIC_LIBRARY)
 
 # ------------------------------------------------------------------------------
 include $(CLEAR_VARS)
