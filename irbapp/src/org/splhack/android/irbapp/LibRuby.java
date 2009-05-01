@@ -9,7 +9,7 @@ public final class LibRuby {
 	TextView mTextView;
 
 	static {
-		System.loadLibrary("ruby_jni");
+		System.loadLibrary("ruby");
 	}
 
 	LibRuby(TextView textView) {

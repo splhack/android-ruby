@@ -93,13 +93,18 @@ LOCAL_SRC_FILES:= \
 	$(RUBY_TOP)/missing/dup2.c \
 	$(RUBY_TOP)/missing/crypt.c \
 	$(RUBY_TOP)/missing/flock.c \
-	$(RUBY_TOP)/dmyext.c
+	$(RUBY_TOP)/dmyext.c \
+	\
+	libruby_jni.cpp
 
-#LOCAL_SHARED_LIBRARIES:= \
-#	libdl
+LOCAL_SHARED_LIBRARIES:= \
+	libnativehelper \
+	libcutils \
+	libdl
 
 LOCAL_C_INCLUDES+= \
-	$(RUBY_C_INCLUDE)
+	$(RUBY_C_INCLUDE) \
+	$(JNI_H_INCLUDE)
 
 LOCAL_CFLAGS+= \
 	$(RUBY_CFLAGS) \
@@ -107,8 +112,7 @@ LOCAL_CFLAGS+= \
 
 LOCAL_PRELINK_MODULE:= false
 
-#include $(BUILD_SHARED_LIBRARY)
-include $(BUILD_STATIC_LIBRARY)
+include $(BUILD_SHARED_LIBRARY)
 
 # ------------------------------------------------------------------------------
 include $(CLEAR_VARS)
