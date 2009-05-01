@@ -2,7 +2,7 @@ LOCAL_PATH:= $(call my-dir)
 
 RUBY_TOP:= ruby
 
-RUBY_INSTALL_PATH:= /sdcard/ruby
+RUBY_INSTALL_PATH:= $(TARGET_OUT)/lib/ruby
 RUBY_SCRIPT_PATH:= $(LOCAL_PATH)/$(RUBY_TOP)/.ext/common
 
 RUBY_C_INCLUDE:= \
