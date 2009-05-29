@@ -1,7 +1,7 @@
 # = uri/common.rb
 #
 # Author:: Akira Yamada <akira@ruby-lang.org>
-# Revision:: $Id: common.rb 19413 2008-09-18 11:05:09Z mame $
+# Revision:: $Id: common.rb 22760 2009-03-04 09:21:12Z yugui $
 # License:: 
 #   You can redistribute it and/or modify it under the same term as Ruby.
 #
@@ -223,11 +223,11 @@ module URI
           tmp << sprintf('%%%02X', uc)
         end
         tmp
-      end
+      end.force_encoding(Encoding::US_ASCII)
     end
 
     def unescape(str, escaped = @regexp[:ESCAPED])
-      str.gsub(escaped) { [$&[1, 2].hex].pack('U') }
+      str.gsub(escaped) { [$&[1, 2].hex].pack('C') }.force_encoding(str.encoding)
     end
 
     @@to_s = Kernel.instance_method(:to_s)

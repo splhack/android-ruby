@@ -1428,12 +1428,15 @@ io_fread(VALUE str, long offset, rb_io_t *fptr)
 
     if (READ_DATA_PENDING(fptr) == 0) {
 	while (n > 0) {
+          again:
 	    c = rb_read_internal(fptr->fd, RSTRING_PTR(str)+offset, n);
 	    if (c == 0) {
 		io_set_eof(fptr);
 		break;
 	    }
 	    if (c < 0) {
+                if (rb_io_wait_readable(fptr->fd))
+                    goto again;
 		rb_sys_fail_path(fptr->pathv);
 	    }
 	    offset += c;
@@ -2212,7 +2215,7 @@ rb_io_getline_1(VALUE rs, long limit, VALUE io)
 
     GetOpenFile(io, fptr);
     rb_io_check_readable(fptr);
-    if (NIL_P(rs)) {
+    if (NIL_P(rs) && limit < 0) {
 	str = read_all(fptr, 0, Qnil);
 	if (RSTRING_LEN(str) == 0) return Qnil;
     }
@@ -2224,24 +2227,26 @@ rb_io_getline_1(VALUE rs, long limit, VALUE io)
 	return rb_io_getline_fast(fptr, enc);
     }
     else {
-	int c, newline;
-	const char *rsptr;
-	long rslen;
+	int c, newline = -1;
+	const char *rsptr = 0;
+	long rslen = 0;
 	int rspara = 0;
         int extra_limit = 16;
 
-	rslen = RSTRING_LEN(rs);
-	if (rslen == 0) {
-	    rsptr = "\n\n";
-	    rslen = 2;
-	    rspara = 1;
-	    swallow(fptr, '\n');
-	    rs = 0;
+	if (!NIL_P(rs)) {
+	    rslen = RSTRING_LEN(rs);
+	    if (rslen == 0) {
+		rsptr = "\n\n";
+		rslen = 2;
+		rspara = 1;
+		swallow(fptr, '\n');
+		rs = 0;
+	    }
+	    else {
+		rsptr = RSTRING_PTR(rs);
+	    }
+	    newline = (unsigned char)rsptr[rslen - 1];
 	}
-	else {
-	    rsptr = RSTRING_PTR(rs);
-	}
-	newline = (unsigned char)rsptr[rslen - 1];
 
 	/* MS - Optimisation */
         enc = io_read_encoding(fptr);
@@ -5231,8 +5236,8 @@ io_reopen(VALUE io, VALUE nfile)
     fptr->mode = orig->mode | (fptr->mode & FMODE_PREP);
     fptr->pid = orig->pid;
     fptr->lineno = orig->lineno;
-    if (orig->pathv) fptr->pathv = orig->pathv;
-    else fptr->pathv = Qnil;
+    if (RTEST(orig->pathv)) fptr->pathv = orig->pathv;
+    else if (!IS_PREP_STDIO(fptr)) fptr->pathv = Qnil;
     fptr->finalize = orig->finalize;
 #if defined (__CYGWIN__) || !defined(HAVE_FORK)
     if (fptr->finalize == pipe_finalize)
@@ -5891,8 +5896,6 @@ rb_io_stdio_file(rb_io_t *fptr)
  *  controlling conversion between the external encoding and the internal encoding.
  *
  *  === Example1
- *
- *     puts IO.new($stdout).fileno # => 1
  *
  *     a = IO.new(2,"w")      # '2' is standard error
  *     $stderr.puts "Hello"
@@ -6968,6 +6971,10 @@ io_encoding_set(rb_io_t *fptr, VALUE v1, VALUE v2, VALUE opt)
 	    }
 	    else
 		enc = rb_to_encoding(v2);
+	    if (enc == enc2) {
+		/* Special case - "-" => no transcoding */
+		enc2 = NULL;
+	    }
 	}
 	else
 	    enc = rb_to_encoding(v2);
@@ -7291,6 +7298,7 @@ rb_io_s_binread(int argc, VALUE *argv, VALUE io)
     struct foreach_arg arg;
 
     rb_scan_args(argc, argv, "12", NULL, NULL, &offset);
+    FilePathValue(argv[0]);
     arg.io = rb_io_open(argv[0], rb_str_new_cstr("rb:ASCII-8BIT"), Qnil, Qnil);
     if (NIL_P(arg.io)) return Qnil;
     arg.argv = argv+1;
@@ -7608,7 +7616,7 @@ copy_stream_fallback_body(VALUE arg)
     const int buflen = 16*1024;
     VALUE n;
     VALUE buf = rb_str_buf_new(buflen);
-    long rest = stp->copy_length;
+    off_t rest = stp->copy_length;
     off_t off = stp->src_offset;
     ID read_method = id_readpartial;
 
@@ -7627,7 +7635,7 @@ copy_stream_fallback_body(VALUE arg)
         else {
             if (rest == 0)
                 break;
-            l = buflen < rest ? buflen : rest;
+            l = buflen < rest ? buflen : (long)rest;
         }
         if (stp->src_fd == -1) {
             rb_funcall(stp->src, read_method, 2, INT2FIX(l), buf);

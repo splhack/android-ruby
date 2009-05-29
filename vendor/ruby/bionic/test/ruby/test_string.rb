@@ -339,6 +339,8 @@ class TestString < Test::Unit::TestCase
     assert_equal(S("hello"), S("hello").chomp)
     assert_equal(S("hello"), S("hello!").chomp)
     $/ = save
+
+    assert_equal(S("a").hash, S("a\u0101").chomp(S("\u0101")).hash, '[ruby-core:22414]')
   end
 
   def test_chomp!
@@ -393,6 +395,8 @@ class TestString < Test::Unit::TestCase
     s = "foo\r"
     s.chomp!("")
     assert_equal("foo\r", s)
+
+    assert_equal(S("a").hash, S("a\u0101").chomp!(S("\u0101")).hash, '[ruby-core:22414]')
   end
 
   def test_chop
@@ -401,6 +405,7 @@ class TestString < Test::Unit::TestCase
     assert_equal(S("hello\n"), S("hello\n\r").chop)
     assert_equal(S(""),        S("\r\n").chop)
     assert_equal(S(""),        S("").chop)
+    assert_equal(S("a").hash,  S("a\u00d8").chop.hash)
   end
 
   def test_chop!
@@ -418,6 +423,10 @@ class TestString < Test::Unit::TestCase
 
     a = S("").chop!
     assert_nil(a)
+
+    a = S("a\u00d8")
+    a.chop!
+    assert_equal(S("a").hash, a.hash)
 
     a = S("hello\n")
     b = a.dup
@@ -474,6 +483,11 @@ class TestString < Test::Unit::TestCase
     assert_equal(S("he"),   S("hello").delete(S("lo")))
     assert_equal(S("hell"), S("hello").delete(S("aeiou"), S("^e")))
     assert_equal(S("ho"),   S("hello").delete(S("ej-m")))
+
+    assert_equal("a".hash, "a\u0101".delete("\u0101").hash, '[ruby-talk:329267]')
+    assert_equal(true, "a\u0101".delete("\u0101").ascii_only?)
+    assert_equal(true, "a\u3041".delete("\u3041").ascii_only?)
+    assert_equal(false, "a\u3041\u3042".tr("\u3041", "a").ascii_only?)
   end
 
   def test_delete!
@@ -1125,6 +1139,8 @@ class TestString < Test::Unit::TestCase
   def test_strip
     assert_equal(S("x"), S("      x        ").strip)
     assert_equal(S("x"), S(" \n\r\t     x  \t\r\n\n      ").strip)
+    assert_equal(S(""), S("\xa0".force_encoding("iso-8859-1")).strip)
+    assert_equal(S("a"), S("a\xa0".force_encoding("iso-8859-1")).strip)
   end
 
   def test_strip!
@@ -1395,6 +1411,9 @@ class TestString < Test::Unit::TestCase
     assert_equal(S("hippo"), S("hello").tr(S("el"), S("ip")))
     assert_equal(S("*e**o"), S("hello").tr(S("^aeiou"), S("*")))
     assert_equal(S("hal"),   S("ibm").tr(S("b-z"), S("a-z")))
+
+    a = "abc".force_encoding(Encoding::US_ASCII)
+    assert_equal(Encoding::US_ASCII, a.tr(S("z"), S("\u0101")).encoding)
   end
 
   def test_tr!
@@ -1415,11 +1434,17 @@ class TestString < Test::Unit::TestCase
     a = S("ibm")
     assert_nil(a.tr!(S("B-Z"), S("A-Z")))
     assert_equal(S("ibm"), a)
+
+    a = "abc".force_encoding(Encoding::US_ASCII)
+    assert_nil(a.tr!(S("z"), S("\u0101")))
+    assert_equal(Encoding::US_ASCII, a.encoding)
   end
 
   def test_tr_s
     assert_equal(S("hypo"), S("hello").tr_s(S("el"), S("yp")))
     assert_equal(S("h*o"),  S("hello").tr_s(S("el"), S("*")))
+    assert_equal("a".hash, "\u0101\u0101".tr_s("\u0101", "a").hash)
+    assert_equal(true, "\u3041\u3041".tr("\u3041", "a").ascii_only?)
   end
 
   def test_tr_s!

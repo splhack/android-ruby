@@ -8,7 +8,7 @@
 
   $Idaemons: /home/cvs/rb/enumerator/enumerator.c,v 1.1.1.1 2001/07/15 10:12:48 knu Exp $
   $RoughId: enumerator.c,v 1.6 2003/07/27 11:03:24 nobu Exp $
-  $Id: enumerator.c 20712 2008-12-13 01:59:42Z yugui $
+  $Id: enumerator.c 23219 2009-04-19 13:33:31Z yugui $
 
 ************************************************/
 
@@ -397,11 +397,17 @@ enumerator_each(VALUE obj)
 }
 
 static VALUE
-enumerator_with_index_i(VALUE val, VALUE *memo)
+enumerator_with_index_i(VALUE val, VALUE *memo, int argc, VALUE *argv)
 {
-    val = rb_yield_values(2, val, INT2FIX(*memo));
+    VALUE idx;
+
+    idx = INT2FIX(*memo);
     ++*memo;
-    return val;
+
+    if (argc <= 1)
+	return rb_yield_values(2, val, idx);
+
+    return rb_yield_values(2, rb_ary_new4(argc, argv), idx);
 }
 
 /*
@@ -432,9 +438,12 @@ enumerator_with_index(VALUE obj)
 }
 
 static VALUE
-enumerator_with_object_i(VALUE val, VALUE memo)
+enumerator_with_object_i(VALUE val, VALUE memo, int argc, VALUE *argv)
 {
-    return rb_yield_values(2, val, memo);
+    if (argc <= 1)
+	return rb_yield_values(2, val, memo);
+
+    return rb_yield_values(2, rb_ary_new4(argc, argv), memo);
 }
 
 /*

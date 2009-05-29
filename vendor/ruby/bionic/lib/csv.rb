@@ -2238,10 +2238,10 @@ class CSV
   end
   
   # 
-  # This method is an encoding safe version of Regexp::escape().  I will escape
+  # This method is an encoding safe version of Regexp::escape().  It will escape
   # any characters that would change the meaning of a regular expression in the
   # encoding of +str+.  Regular expression characters that cannot be transcoded
-  # to the target encodign will be skipped and no escaping will be performed if
+  # to the target encoding will be skipped and no escaping will be performed if
   # a backslash cannot be transcoded.
   # 
   def escape_re(str)
@@ -2282,9 +2282,7 @@ class CSV
       if @io.eof? or data.size >= bytes + 10
         return data
       else
-        data += @io.read(1) until data.valid_encoding? or
-                                  @io.eof?             or
-                                  data.size >= bytes + 10
+        data += @io.read(1)
         retry
       end
     end
