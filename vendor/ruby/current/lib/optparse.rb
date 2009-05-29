@@ -203,7 +203,7 @@
 #
 class OptionParser
   # :stopdoc:
-  RCSID = %w$Id: optparse.rb 21070 2008-12-26 11:16:16Z yugui $[1..-1].each {|s| s.freeze}.freeze
+  RCSID = %w$Id: optparse.rb 23396 2009-05-11 15:05:43Z yugui $[1..-1].each {|s| s.freeze}.freeze
   Version = (RCSID[1].split('.').collect {|s| s.to_i}.extend(Comparable).freeze if RCSID[1])
   LastModified = (Time.gm(*RCSID[2, 2].join('-').scan(/\d+/).collect {|s| s.to_i}) if RCSID[2])
   Release = RCSID[2]
@@ -1298,7 +1298,7 @@ class OptionParser
           begin
             opt, cb, val = sw.parse(val, argv) {|*exc| raise(*exc) if eq}
             raise InvalidOption, arg if has_arg and !eq and arg == "-#{opt}"
-            argv.unshift(opt) if opt and (opt = opt.sub(/\A-*/, '-')) != '-'
+            argv.unshift(opt) if opt and (!rest or (opt = opt.sub(/\A-*/, '-')) != '-')
             val = cb.call(val) if cb
             setter.call(sw.switch_name, val) if setter
           rescue ParseError

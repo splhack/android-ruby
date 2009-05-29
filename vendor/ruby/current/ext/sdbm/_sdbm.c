@@ -8,11 +8,12 @@
  */
 
 #ifndef lint
-/*char sdbm_rcsid[] = "$Id: _sdbm.c 19679 2008-10-04 13:33:22Z yugui $";*/
+/*char sdbm_rcsid[] = "$Id: _sdbm.c 23225 2009-04-19 13:34:30Z yugui $";*/
 #endif
 
 #include "sdbm.h"
 #include "ruby/config.h"
+#include "ruby/defines.h"
 
 /*
  * sdbm - ndbm work-alike hashed database library
@@ -598,7 +599,7 @@ getnext(register DBM *db)
  */
 
 #ifndef lint
-/*char pair_rcsid[] = "$Id: _sdbm.c 19679 2008-10-04 13:33:22Z yugui $";*/
+/*char pair_rcsid[] = "$Id: _sdbm.c 23225 2009-04-19 13:34:30Z yugui $";*/
 #endif
 
 #ifndef BSD42

@@ -275,7 +275,7 @@ ruby_init_stack(VALUE *addr
     native_main_thread.stack_start = STACK_END_ADDRESS;
 #else
     if (!native_main_thread.stack_start ||
-        STACK_UPPER(&addr,
+        STACK_UPPER((VALUE *)(void *)&addr,
                     native_main_thread.stack_start > addr,
                     native_main_thread.stack_start < addr)) {
         native_main_thread.stack_start = addr;
@@ -292,10 +292,10 @@ ruby_init_stack(VALUE *addr
 	struct rlimit rlim;
 
 	if (getrlimit(RLIMIT_STACK, &rlim) == 0) {
-	    unsigned int space = rlim.rlim_cur/5;
+	    size_t space = (size_t)(rlim.rlim_cur/5);
 
 	    if (space > 1024*1024) space = 1024*1024;
-	    native_main_thread.stack_maxsize = rlim.rlim_cur - space;
+	    native_main_thread.stack_maxsize = (size_t)rlim.rlim_cur - space;
 	}
     }
 #endif

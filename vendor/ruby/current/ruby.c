@@ -1355,6 +1355,13 @@ process_options(VALUE arg)
 	});
     }
 
+    if (opt->ext.enc.index >= 0) {
+	enc = rb_enc_from_index(opt->ext.enc.index);
+    }
+    else {
+	enc = lenc;
+    }
+    rb_enc_set_default_external(rb_enc_from_encoding(enc));
     if (opt->intern.enc.index >= 0) {
 	/* Set in the shebang line */
 	enc = rb_enc_from_index(opt->intern.enc.index);
@@ -1552,7 +1559,6 @@ load_file_internal(VALUE arg)
 	    rb_io_ungetbyte(f, c);
 	}
 	require_libraries(opt);	/* Why here? unnatural */
-	rb_io_ungetbyte(f, Qnil);
     }
     if (opt->src.enc.index >= 0) {
 	enc = rb_enc_from_index(opt->src.enc.index);
@@ -1571,6 +1577,9 @@ load_file_internal(VALUE arg)
     }
     else if (f != rb_stdin) {
 	rb_io_close(f);
+    }
+    else {
+	rb_io_ungetbyte(f, Qnil);
     }
     return (VALUE)tree;
 }

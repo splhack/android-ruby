@@ -67,7 +67,12 @@ char *strrchr(const char *, const char);
 #define ruby_setjmp(env) RUBY_SETJMP(env)
 #define ruby_longjmp(env,val) RUBY_LONGJMP(env,val)
 #ifdef __CYGWIN__
-int _setjmp(), _longjmp();
+# ifndef _setjmp
+int _setjmp(jmp_buf);
+# endif
+# ifndef _longjmp
+NORETURN(void _longjmp(jmp_buf, int));
+# endif
 #endif
 
 #include <sys/types.h>
@@ -195,6 +200,8 @@ NORETURN(void rb_fiber_start(void));
 NORETURN(void rb_print_undef(VALUE, ID, int));
 NORETURN(void rb_vm_localjump_error(const char *,VALUE, int));
 NORETURN(void rb_vm_jump_tag_but_local_jump(int, VALUE));
+NORETURN(void rb_raise_method_missing(rb_thread_t *th, int argc, VALUE *argv,
+				      VALUE obj, int call_status));
 
 VALUE rb_vm_make_jump_tag_but_local_jump(int state, VALUE val);
 NODE *rb_vm_cref(void);

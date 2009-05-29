@@ -2,7 +2,7 @@
 #
 # benchmark.rb - a performance benchmarking library 
 # 
-# $Id: benchmark.rb 15426 2008-02-10 15:29:00Z naruse $
+# $Id: benchmark.rb 22530 2009-02-22 12:49:00Z yugui $
 # 
 # Created by Gotoken (gotoken@notwork.org). 
 #
@@ -103,6 +103,7 @@
 #   using the #benchmark method:
 #
 #       require 'benchmark'
+#       include Benchmark         # we need the CAPTION and FMTSTR constants 
 #
 #       n = 50000
 #       Benchmark.benchmark(" "*7 + CAPTION, 7, FMTSTR, ">total:", ">avg:") do |x|

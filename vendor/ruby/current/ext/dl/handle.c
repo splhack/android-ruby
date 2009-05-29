@@ -1,9 +1,11 @@
 /* -*- C -*-
- * $Id: handle.c 11708 2007-02-12 23:01:19Z shyouhei $
+ * $Id: handle.c 23405 2009-05-11 15:07:10Z yugui $
  */
 
 #include <ruby.h>
 #include "dl.h"
+
+#define SafeStringValuePtr(v) (rb_string_value(&v), rb_check_safe_obj(v), RSTRING_PTR(v))
 
 VALUE rb_cDLHandle;
 
@@ -56,11 +58,11 @@ rb_dlhandle_initialize(int argc, VALUE argv[], VALUE self)
     cflag = RTLD_LAZY | RTLD_GLOBAL;
     break;
   case 1:
-    clib = NIL_P(lib) ? NULL : StringValuePtr(lib);
+    clib = NIL_P(lib) ? NULL : SafeStringValuePtr(lib);
     cflag = RTLD_LAZY | RTLD_GLOBAL;
     break;
   case 2:
-    clib = NIL_P(lib) ? NULL : StringValuePtr(lib);
+    clib = NIL_P(lib) ? NULL : SafeStringValuePtr(lib);
     cflag = NUM2INT(flag);
     break;
   default:
@@ -140,17 +142,7 @@ rb_dlhandle_sym(VALUE self, VALUE sym)
 
     rb_secure(2);
 
-    if( sym == Qnil ){
-#if defined(RTLD_NEXT)
-	name = RTLD_NEXT;
-#else
-	name = NULL;
-#endif
-    }
-    else{
-	name = StringValuePtr(sym);
-    }
-
+    name = SafeStringValuePtr(sym);
 
     Data_Get_Struct(self, struct dl_handle, dlhandle);
     if( ! dlhandle->open ){
@@ -160,53 +152,48 @@ rb_dlhandle_sym(VALUE self, VALUE sym)
 
     func = dlsym(handle, name);
     CHECK_DLERROR;
+#if defined(FUNC_STDCALL)
     if( !func ){
-#if defined(__CYGWIN__) || defined(WIN32) || defined(__MINGW32__)
+	int  len = strlen(name);
+	char *name_n;
+#if defined(__CYGWIN__) || defined(_WIN32) || defined(__MINGW32__)
 	{
-	    int  len = strlen(name);
 	    char *name_a = (char*)xmalloc(len+2);
 	    strcpy(name_a, name);
+	    name_n = name_a;
 	    name_a[len]   = 'A';
 	    name_a[len+1] = '\0';
 	    func = dlsym(handle, name_a);
-	    xfree(name_a);
 	    CHECK_DLERROR;
-	    if( !func ){
-		for( i = 0; i < 256; i += 4 ){
-		    int  len = strlen(name);
-		    char *name_n = (char*)xmalloc(len+5);
-		    sprintf(name_n, "%s@%d%c", name, i, 0);
-		    func = dlsym(handle, name_n);
-		    xfree(name_n);
-		    CHECK_DLERROR;
-		    if( func )
-                    {
-			break;
-		    }
-		}
-		CHECK_DLERROR;
-		if( !func ){
-		    rb_raise(rb_eDLError, "unknown symbol \"%s\"", name);
-		}
-	    }
+	    if( func ) goto found;
+	    name_n = xrealloc(name_a, len+6);
 	}
 #else
-	for( i = 0; i < 256; i += 4 ){
-	    int  len = strlen(name);
-	    char *name_n = (char*)xmalloc(len+4);
-	    sprintf(name_n, "%s@%d", name, i);
-	    func = dlsym(handle, name_n);
-	    xfree(name_n);
-	    CHECK_DLERROR;
-            if( func ){
-		break;
-	    }
-	}
-	CHECK_DLERROR;
-        if( !func ){
-	    rb_raise(rb_eDLError, "unknown symbol \"%s\"", name);
-	}
+	name_n = (char*)xmalloc(len+6);
 #endif
+	memcpy(name_n, name, len);
+	name_n[len++] = '@';
+	for( i = 0; i < 256; i += 4 ){
+	    sprintf(name_n + len, "%d", i);
+	    func = dlsym(handle, name_n);
+	    CHECK_DLERROR;
+	    if( func ) break;
+	}
+	if( func ) goto found;
+	name_n[len-1] = 'A';
+	name_n[len++] = '@';
+	for( i = 0; i < 256; i += 4 ){
+	    sprintf(name_n + len, "%d", i);
+	    func = dlsym(handle, name_n);
+	    CHECK_DLERROR;
+	    if( func ) break;
+	}
+      found:
+	xfree(name_n);
+    }
+#endif
+    if( !func ){
+	rb_raise(rb_eDLError, "unknown symbol \"%s\"", name);
     }
 
     return PTR2NUM(func);
