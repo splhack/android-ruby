@@ -1,7 +1,7 @@
 #
 #   irb/ruby-lex.rb - ruby lexcal analyzer
 #   	$Release Version: 0.9.5$
-#   	$Revision: 20882 $
+#   	$Revision: 23233 $
 #   	by Keiju ISHITSUKA(keiju@ruby-lang.org)
 #
 # --
@@ -14,7 +14,7 @@ require "irb/slex"
 require "irb/ruby-token"
 
 class RubyLex
-  @RCS_ID='-$Id: ruby-lex.rb 20882 2008-12-19 11:37:59Z yugui $-'
+  @RCS_ID='-$Id: ruby-lex.rb 23233 2009-04-19 13:35:47Z yugui $-'
 
   extend Exception2MessageMapper
   def_exception(:AlreadyDefinedToken, "Already defined token(%s)")
@@ -389,7 +389,8 @@ class RubyLex
 		  "=", "==", "===", 
 		  "=~", "<=>",	
 		  "<", "<=",
-		  ">", ">=", ">>") do
+		  ">", ">=", ">>",
+		  "!", "!=", "!~") do
       |op, io|
       case @lex_state
       when EXPR_FNAME, EXPR_DOT
@@ -397,12 +398,6 @@ class RubyLex
       else
 	@lex_state = EXPR_BEG
       end
-      Token(op)
-    end
-
-    @OP.def_rules("!", "!=", "!~") do
-      |op, io|
-      @lex_state = EXPR_BEG
       Token(op)
     end
 
@@ -822,11 +817,11 @@ class RubyLex
 	      when "class"
 		valid = false unless peek_match?(/^\s*(<<|\w|::)/)
 	      when "def"
-		valid = false if peek_match?(/^\s*(([+-\/*&\|^]|<<|>>|\|\||\&\&)=|\&\&|\|\|)/)
+		valid = false if peek_match?(/^\s*(([+\-\/*&\|^]|<<|>>|\|\||\&\&)=|\&\&|\|\|)/)
 	      when "do"
-		valid = false if peek_match?(/^\s*([+-\/*]?=|\*|<|>|\&)/)
+		valid = false if peek_match?(/^\s*([+\-\/*]?=|\*|<|>|\&)/)
 	      when *ENINDENT_CLAUSE
-		valid = false if peek_match?(/^\s*([+-\/*]?=|\*|<|>|\&|\|)/)
+		valid = false if peek_match?(/^\s*([+\-\/*]?=|\*|<|>|\&|\|)/)
 	      else
 		# no nothing
 	      end

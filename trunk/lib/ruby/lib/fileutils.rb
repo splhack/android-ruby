@@ -487,7 +487,7 @@ module FileUtils
   # Options: force noop verbose
   # 
   # Moves file(s) +src+ to +dest+.  If +file+ and +dest+ exist on the different
-  # disk partition, the file is copied instead.
+  # disk partition, the file is copied then the original file is removed.
   # 
   #   FileUtils.mv 'badname.rb', 'goodname.rb'
   #   FileUtils.mv 'stuff.rb', '/notexist/lib/ruby', :force => true  # no error
@@ -987,6 +987,7 @@ module FileUtils
 
     def fu_get_gid(group)   #:nodoc:
       return nil unless group
+      group = group.to_s
       if /\A\d+\z/ =~ group
       then group.to_i
       else Etc.getgrnam(group).gid

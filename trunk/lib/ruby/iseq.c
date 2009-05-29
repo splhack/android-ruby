@@ -21,6 +21,8 @@
 
 VALUE rb_cISeq;
 
+#define hidden_obj_p(obj) (!SPECIAL_CONST_P(obj) && !RBASIC(obj)->klass)
+
 static void
 compile_data_free(struct iseq_compile_data *compile_data)
 {
@@ -699,6 +701,16 @@ insn_operand_intern(rb_iseq_t *iseq,
 	op = ID2SYM(op);
 
       case TS_VALUE:		/* VALUE */
+	if (hidden_obj_p(op)) {
+	    switch (BUILTIN_TYPE(op)) {
+	      case T_STRING:
+		op = rb_str_replace(rb_str_new(0, 0), op);
+		break;
+	      case T_ARRAY:
+		op = rb_ary_replace(rb_ary_new2(0), op);
+		break;
+	    }
+	}
 	ret = rb_inspect(op);
 	if (CLASS_OF(op) == rb_cISeq) {
 	    rb_ary_push(child, op);
@@ -839,6 +851,7 @@ rb_iseq_disasm(VALUE self)
     VALUE child = rb_ary_new();
     unsigned long size;
     int i;
+    long l;
     ID *tbl;
     enum {header_minlen = 72};
 
@@ -850,9 +863,9 @@ rb_iseq_disasm(VALUE self)
     rb_str_cat2(str, "== disasm: ");
 
     rb_str_concat(str, iseq_inspect(iseqdat->self));
-    if ((i = RSTRING_LEN(str)) < header_minlen) {
+    if ((l = RSTRING_LEN(str)) < header_minlen) {
 	rb_str_resize(str, header_minlen);
-	memset(RSTRING_PTR(str) + i, '=', header_minlen - i);
+	memset(RSTRING_PTR(str) + l, '=', header_minlen - l);
     }
     rb_str_cat2(str, "\n");
 

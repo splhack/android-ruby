@@ -1,6 +1,6 @@
 #----------------------------------
 # extconf.rb
-# $Revision: 19782 $
+# $Revision: 21960 $
 #----------------------------------
 require 'mkmf'
 
@@ -36,7 +36,7 @@ end
 
 
 case RUBY_PLATFORM
-when /mswin32/
+when /mswin/
   $CFLAGS += ' /W3'
 when /cygwin/, /mingw/
   $defs << '-DNONAMELESSUNION'

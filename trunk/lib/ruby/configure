@@ -11868,6 +11868,14 @@ fi
 
 
 case "$target_os" in
+*bsd*|dragonfly*)
+    ;;
+*)
+    ac_cv_func_daemon=no
+    ;;
+esac
+
+case "$target_os" in
 nextstep*)	;;
 openstep*)	;;
 rhapsody*)	;;
@@ -11905,7 +11913,6 @@ $as_echo "$ac_try_echo") >&5
        }; then
 
 		    ac_cv_header_ucontext_h=no
-		    ac_cv_func_daemon=no
 
 else
   $as_echo "$as_me: failed program was:" >&5
@@ -20883,6 +20890,8 @@ main(int argc, char *argv[])
 	    kill(pid, SIGKILL);
 	    return EXIT_FAILURE;
 	}
+        if (!WIFEXITED(loc) || WEXITSTATUS(loc) != EXIT_SUCCESS)
+           return EXIT_FAILURE;
     }
     else {
 	if (use_threads()) return EXIT_FAILURE;
@@ -22077,8 +22086,8 @@ fi
 #fi
 
 if test x"$cross_compiling" = xyes; then
-  test x"$MINIRUBY" = x && MINIRUBY="${RUBY-ruby} -I`pwd` -rfake"
-  PREP=fake.rb
+  test x"$MINIRUBY" = x && MINIRUBY="${RUBY-ruby} -I`pwd` "-r'$(arch)-fake'
+  PREP='$(arch)-fake.rb'
   RUNRUBY='$(MINIRUBY) -I`cd $(srcdir)/lib; pwd`'
 else
   MINIRUBY='./miniruby$(EXEEXT) -I$(srcdir)/lib'
@@ -22188,7 +22197,7 @@ if test "$enable_shared" = 'yes'; then
     darwin*)
 	LIBRUBY_SO='lib$(RUBY_SO_NAME).$(MAJOR).$(MINOR).$(TEENY).dylib'
 	LIBRUBY_LDSHARED='cc -dynamiclib -undefined suppress -flat_namespace'
-	LIBRUBY_DLDFLAGS='-install_name $(libdir)/lib$(RUBY_SO_NAME).dylib -current_version $(MAJOR).$(MINOR).$(TEENY) -compatibility_version $(MAJOR).$(MINOR)'
+	LIBRUBY_DLDFLAGS='-install_name $(libdir)/lib$(RUBY_SO_NAME).dylib -current_version $(MAJOR).$(MINOR).$(TEENY) -compatibility_version $(ruby_version)'
 	LIBRUBY_ALIASES='lib$(RUBY_SO_NAME).$(MAJOR).$(MINOR).dylib lib$(RUBY_SO_NAME).dylib'
 	;;
     interix*)

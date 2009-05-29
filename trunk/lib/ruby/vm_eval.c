@@ -255,6 +255,9 @@ rb_call(VALUE klass, VALUE recv, ID mid, int argc, const VALUE *argv, int scope)
     return rb_call0(klass, recv, mid, argc, argv, scope, Qundef);
 }
 
+NORETURN(static void raise_method_missing(rb_thread_t *th, int argc, const VALUE *argv,
+					  VALUE obj, int call_status));
+
 /*
  *  call-seq:
  *     obj.method_missing(symbol [, *args] )   => result
@@ -291,11 +294,21 @@ rb_call(VALUE klass, VALUE recv, ID mid, int argc, const VALUE *argv, int scope)
 static VALUE
 rb_method_missing(int argc, const VALUE *argv, VALUE obj)
 {
+    rb_thread_t *th = GET_THREAD();
+    raise_method_missing(th, argc, argv, obj, th->method_missing_reason);
+    return Qnil;		/* not reached */
+}
+
+#define NOEX_MISSING   0x80
+
+static void
+raise_method_missing(rb_thread_t *th, int argc, const VALUE *argv, VALUE obj,
+		     int last_call_status)
+{
     ID id;
     VALUE exc = rb_eNoMethodError;
     const char *format = 0;
-    rb_thread_t *th = GET_THREAD();
-    int last_call_status = th->method_missing_reason;
+
     if (argc == 0 || !SYMBOL_P(argv[0])) {
 	rb_raise(rb_eArgError, "no id given");
     }
@@ -332,11 +345,11 @@ rb_method_missing(int argc, const VALUE *argv, VALUE obj)
 	}
 	exc = rb_class_new_instance(n, args, exc);
 
-	th->cfp = RUBY_VM_PREVIOUS_CONTROL_FRAME(th->cfp);
+	if (!(last_call_status & NOEX_MISSING)) {
+	    th->cfp = RUBY_VM_PREVIOUS_CONTROL_FRAME(th->cfp);
+	}
 	rb_exc_raise(exc);
     }
-
-    return Qnil;		/* not reached */
 }
 
 static inline VALUE
@@ -349,7 +362,7 @@ method_missing(VALUE obj, ID id, int argc, const VALUE *argv, int call_status)
     th->passed_block = 0;
 
     if (id == idMethodMissing) {
-	rb_method_missing(argc, argv, obj);
+	raise_method_missing(th, argc, argv, obj, call_status | NOEX_MISSING);
     }
     else if (id == ID_ALLOCATOR) {
 	rb_raise(rb_eTypeError, "allocator undefined for %s",
@@ -369,6 +382,14 @@ method_missing(VALUE obj, ID id, int argc, const VALUE *argv, int call_status)
     result = rb_funcall2(obj, idMethodMissing, argc + 1, nargv);
     if (argv_ary) rb_ary_clear(argv_ary);
     return result;
+}
+
+void
+rb_raise_method_missing(rb_thread_t *th, int argc, VALUE *argv,
+			VALUE obj, int call_status)
+{
+    th->passed_block = 0;
+    raise_method_missing(th, argc, argv, obj, call_status | NOEX_MISSING);
 }
 
 VALUE
@@ -704,7 +725,7 @@ eval_string_with_cref(VALUE self, VALUE src, VALUE scope, NODE *cref, const char
 	    th->base_block = &env->block;
 	}
 	else {
-	    rb_control_frame_t *cfp = vm_get_ruby_level_caller_cfp(th, th->cfp);
+	    rb_control_frame_t *cfp = rb_vm_get_ruby_level_next_cfp(th, th->cfp);
 
 	    if (cfp != 0) {
 		block = *RUBY_VM_GET_BLOCK_PTR_IN_CFP(cfp);
@@ -751,14 +772,22 @@ eval_string_with_cref(VALUE self, VALUE src, VALUE scope, NODE *cref, const char
 	    if (strcmp(file, "(eval)") == 0) {
 		VALUE mesg, errat, bt2;
 		extern VALUE rb_get_backtrace(VALUE info);
+		ID id_mesg;
 
+		CONST_ID(id_mesg, "mesg");
 		errat = rb_get_backtrace(errinfo);
-		mesg = rb_attr_get(errinfo, rb_intern("mesg"));
+		mesg = rb_attr_get(errinfo, id_mesg);
 		if (!NIL_P(errat) && TYPE(errat) == T_ARRAY &&
 		    (bt2 = vm_backtrace(th, -2), RARRAY_LEN(bt2) > 0)) {
 		    if (!NIL_P(mesg) && TYPE(mesg) == T_STRING && !RSTRING_LEN(mesg)) {
-			rb_str_update(mesg, 0, 0, rb_str_new2(": "));
-			rb_str_update(mesg, 0, 0, RARRAY_PTR(errat)[0]);
+			if (OBJ_FROZEN(mesg)) {
+			    VALUE m = rb_str_cat(rb_str_dup(RARRAY_PTR(errat)[0]), ": ", 2);
+			    rb_ivar_set(errinfo, id_mesg, rb_str_append(m, mesg));
+			}
+			else {
+			    rb_str_update(mesg, 0, 0, rb_str_new2(": "));
+			    rb_str_update(mesg, 0, 0, RARRAY_PTR(errat)[0]);
+			}
 		    }
 		    RARRAY_PTR(errat)[0] = RARRAY_PTR(bt2)[0];
 		}

@@ -1,6 +1,7 @@
 # -*- makefile -*-
 
 SHELL = $(COMSPEC)
+RUNCMD = $(COMSPEC) /c
 MKFILES = Makefile
 NULL = nul
 
@@ -163,7 +164,7 @@ CFLAGS = $(RUNTIMEFLAG) $(DEBUGFLAGS) $(WARNFLAGS) $(OPTFLAGS) $(PROCESSOR_FLAG)
 CXXFLAGS = $(CFLAGS)
 !endif
 !if !defined(LDFLAGS)
-LDFLAGS = -link -incremental:no -debug -opt:ref -opt:icf
+LDFLAGS = -incremental:no -debug -opt:ref -opt:icf
 !endif
 !if !defined(XLDFLAGS)
 XLDFLAGS = -stack:$(STACK)
@@ -258,10 +259,12 @@ ASMEXT = asm
 
 INSTALLED_LIST= .installed.list
 
+MKMAIN_CMD    = mkmain.bat
+
 !if !defined(WINMAINOBJ)
 WINMAINOBJ    = winmain.$(OBJEXT)
 !endif
-ARCHMINIOBJS  = dmydln.$(OBJEXT)
+ARCHMINIOBJS  = dmydln.$(OBJEXT) miniruby.res
 LIBOBJS       = $(MISSING) $(LIBOBJS)
 
 !ifndef COMMON_LIBS
@@ -529,7 +532,7 @@ s,@DEFS@,$(DEFS),;t t
 s,@CPPFLAGS@,$(CPPFLAGS),;t t
 s,@CXXFLAGS@,$(CXXFLAGS),;t t
 s,@FFLAGS@,$(FFLAGS),;t t
-s,@LDFLAGS@,,;t t
+s,@LDFLAGS@,$(LDFLAGS),;t t
 s,@LIBS@,$(LIBS),;t t
 s,@exec_prefix@,$${prefix},;t t
 s,@prefix@,$(prefix),;t t
@@ -621,7 +624,7 @@ s,@CPPOUTFILE@,-P,;t t
 s,@LIBPATHFLAG@, -libpath:"%s",;t t
 s,@RPATHFLAG@,,;t t
 s,@LIBARG@,%s.lib,;t t
-s,@LINK_SO@,$$(LDSHARED) -Fe$$(@) $$(OBJS) $$(LIBS) $$(LOCAL_LIBS) $$(DLDFLAGS) -implib:$$(*F:.so=)-$$(arch).lib -pdb:$$(*F:.so=)-$$(arch).pdb -def:$$(DEFFILE),;t t
+s,@LINK_SO@,$$(LDSHARED) -Fe$$(@) $$(OBJS) $$(LIBS) $$(LOCAL_LIBS) -link $$(DLDFLAGS) -implib:$$(*F:.so=)-$$(arch).lib -pdb:$$(*F:.so=)-$$(arch).pdb -def:$$(DEFFILE),;t t
 !if $(MSC_VER) >= 1400
 s,@LINK_SO@,@$$(RUBY) -run -e wait_writable -- -n 10 $$(@),;t t
 s,@LINK_SO@,$(MANIFESTTOOL) -manifest $$(@).manifest -outputresource:$$(@);2,;t t
@@ -656,15 +659,18 @@ miniruby: miniruby$(EXEEXT)
 
 miniruby$(EXEEXT):
 		@echo. $(LIBS)
-		$(PURIFY) $(CC) $(MAINOBJ) $(MINIOBJS) $(COMMONOBJS) $(DMYEXT) $(LIBS) -Fe$@ $(LDFLAGS)
+		$(PURIFY) $(CC) $(MAINOBJ) $(MINIOBJS) $(COMMONOBJS) $(DMYEXT) $(LIBS) -Fe$@ -link $(LDFLAGS)
 		miniruby.exe -v
 		$(LDSHARED_1)
 		$(LDSHARED_2)
 
+miniruby.rc:
+		@exit > $@
+
 !if "$(PROGRAM)" != ""
 $(PROGRAM):	$(MAINOBJ) $(LIBRUBY_SO) $(RUBY_INSTALL_NAME).res
 		$(PURIFY) $(CC) $(MAINOBJ) $(RUBY_INSTALL_NAME).res \
-			$(OUTFLAG)$@ $(LIBRUBYARG) $(LDFLAGS) $(XLDFLAGS)
+			$(OUTFLAG)$@ $(LIBRUBYARG) -link $(LDFLAGS) $(XLDFLAGS)
 		$(LDSHARED_0)
 		$(LDSHARED_1)
 		$(LDSHARED_2)
@@ -674,7 +680,7 @@ $(PROGRAM):	$(MAINOBJ) $(LIBRUBY_SO) $(RUBY_INSTALL_NAME).res
 $(WPROGRAM):	$(MAINOBJ) $(WINMAINOBJ) $(LIBRUBY_SO) $(RUBYW_INSTALL_NAME).res
 		$(PURIFY) $(CC) $(MAINOBJ) $(WINMAINOBJ) \
 			$(RUBYW_INSTALL_NAME).res $(OUTFLAG)$@ $(LIBRUBYARG) \
-			$(LDFLAGS) $(XLDFLAGS) -subsystem:Windows
+			-link $(LDFLAGS) $(XLDFLAGS) -subsystem:Windows
 		$(LDSHARED_0)
 		$(LDSHARED_1)
 		$(LDSHARED_2)
@@ -690,7 +696,7 @@ $(LIBRUBY_SO):	$(LIBRUBY_A) $(DLDOBJS) $(RUBYDEF) $(RUBY_SO_NAME).res
 		@echo. $(DLDOBJS)
 		@-$(PRE_LIBRUBY_UPDATE)
 		$(LDSHARED) $(MAINOBJ) $(DLDOBJS) $(LIBRUBY_A) \
-			$(RUBY_SO_NAME).res $(LIBS) -Fe$@ $(LDFLAGS) \
+			$(RUBY_SO_NAME).res $(LIBS) -Fe$@ -link $(LDFLAGS) \
 			$(LIBRUBY_DLDFLAGS)
 		$(LDSHARED_0)
 		$(LDSHARED_1)
@@ -713,7 +719,7 @@ clean:
 
 distclean-local::
 		@$(RM) ext\config.cache $(RBCONFIG:/=\) $(CONFIG_H:/=\)
-		@$(RM) $(RUBY_INSTALL_NAME).rc $(RUBYW_INSTALL_NAME).rc $(RUBY_SO_NAME).rc
+		@$(RM) miniruby.rc $(RUBY_INSTALL_NAME).rc $(RUBYW_INSTALL_NAME).rc $(RUBY_SO_NAME).rc
 		@-$(RM) $(INSTALLED_LIST:/=\) $(arch_hdrdir:/=\)\ruby\config.h
 		@-$(RMDIRS) $(arch_hdrdir:/=\)\ruby
 

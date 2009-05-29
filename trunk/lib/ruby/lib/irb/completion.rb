@@ -1,7 +1,7 @@
 #
 #   irb/completor.rb - 
 #   	$Release Version: 0.9$
-#   	$Revision: 20880 $
+#   	$Revision: 23233 $
 #   	by Keiju ISHITSUKA(keiju@ishitsuka.com)
 #       From Original Idea of shugo@ruby-lang.org
 #
@@ -11,7 +11,7 @@ require "readline"
 module IRB
   module InputCompletor
 
-    @RCS_ID='-$Id: completion.rb 20880 2008-12-19 11:37:41Z yugui $-'
+    @RCS_ID='-$Id: completion.rb 23233 2009-04-19 13:35:47Z yugui $-'
 
     ReservedWords = [
       "BEGIN", "END",
@@ -184,7 +184,7 @@ module IRB
 
     Operators = ["%", "&", "*", "**", "+",  "-",  "/",
       "<", "<<", "<=", "<=>", "==", "===", "=~", ">", ">=", ">>",
-      "[]", "[]=", "^",]
+      "[]", "[]=", "^", "!", "!=", "!~"]
 
     def self.select_message(receiver, message, candidates)
       candidates.grep(/^#{message}/).collect do |e|

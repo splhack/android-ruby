@@ -8,7 +8,7 @@
   Copyright (C) 1997-2008  Shugo Maeda
   Copyright (C) 2008       TAKAO Kouji
 
-  $Id: readline.c 21634 2009-01-17 12:20:00Z yugui $
+  $Id: readline.c 22513 2009-02-22 09:47:41Z yugui $
 
   Contact:
    - TAKAO Kouji <kouji at takao7 dot net> (current maintainer)
@@ -1287,8 +1287,10 @@ Init_readline()
 #else
 	{
 	    HIST_ENTRY *entry = remove_history(0);
-	    free((char *)entry->line);
-	    free(entry);
+	    if (entry) {
+		free((char *)entry->line);
+		free(entry);
+	    }
 	}
 #endif
     }
