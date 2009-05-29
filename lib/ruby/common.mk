@@ -122,9 +122,16 @@ BOOTSTRAPRUBY = $(BASERUBY)
 
 COMPILE_PRELUDE = $(MINIRUBY) -I$(srcdir) -rrbconfig $(srcdir)/tool/compile_prelude.rb
 
-all: encs exts
-exts: $(MKFILES) incs $(PREP) $(RBCONFIG) $(LIBRUBY)
-	@$(MINIRUBY) $(srcdir)/ext/extmk.rb --make="$(MAKE)" $(EXTMK_ARGS)
+all: encs exts main
+
+main: exts
+	@$(RUNCMD) $(MKMAIN_CMD) MAKE=$(MAKE)
+
+exts: $(MKMAIN_CMD)
+
+$(MKMAIN_CMD): $(MKFILES) incs $(PREP) $(RBCONFIG) $(LIBRUBY) 
+	@$(MINIRUBY) $(srcdir)/ext/extmk.rb --make="$(MAKE)" --command-output=$@ $(EXTMK_ARGS)
+
 prog: $(PROGRAM) $(WPROGRAM)
 
 loadpath: $(PREP)
@@ -153,8 +160,8 @@ $(STATIC_RUBY)$(EXEEXT): $(MAINOBJ) $(DLDOBJS) $(EXTOBJS) $(LIBRUBY_A)
 	@$(RM) $@
 	$(PURIFY) $(CC) $(MAINOBJ) $(DLDOBJS) $(EXTOBJS) $(LIBRUBY_A) $(MAINLIBS) $(EXTLIBS) $(LIBS) $(OUTFLAG)$@ $(LDFLAGS) $(XLDFLAGS)
 
-ruby.imp: $(COMMONOBJS)
-	@$(NM) -Pgp $(COMMONOBJS) | awk 'BEGIN{print "#!"}; $$2~/^[BD]$$/{print $$1}' | sort -u -o $@
+ruby.imp: $(OBJS)
+	@$(NM) -Pgp $(OBJS) | awk 'BEGIN{print "#!"}; $$2~/^[BD]$$/{print $$1}' | sort -u -o $@
 
 install: install-nodoc $(RDOCTARGET)
 install-all: install-nodoc install-doc
@@ -415,7 +422,7 @@ PHONY:
 parse.h {$(VPATH)}parse.h: {$(VPATH)}parse.c
 
 {$(srcdir)}.y.c:
-	$(YACC) -d $(YFLAGS) -o y.tab.c $(<:\\=/)
+	$(YACC) -d $(YFLAGS) -o y.tab.c $(<:\=/)
 	sed -f $(srcdir)/tool/ytab.sed -e "/^#/s!y\.tab\.c!$@!" y.tab.c > $@.new
 	@$(MV) $@.new $@
 	sed -e "/^#line.*y\.tab\.h/d;/^#line.*parse\.y/d" y.tab.h > $(@:.c=.h).new
@@ -480,7 +487,7 @@ error.$(OBJEXT): {$(VPATH)}error.c {$(VPATH)}known_errors.inc $(RUBY_H_INCLUDES)
   $(VM_CORE_H_INCLUDES) {$(VPATH)}debug.h
 eval.$(OBJEXT): {$(VPATH)}eval.c {$(VPATH)}eval_intern.h \
   $(RUBY_H_INCLUDES) $(VM_CORE_H_INCLUDES) {$(VPATH)}eval_error.c \
-  {$(VPATH)}eval_jump.c {$(VPATH)}debug.h \
+  {$(VPATH)}eval_jump.c {$(VPATH)}debug.h {$(VPATH)}gc.h \
   {$(VPATH)}iseq.h
 load.$(OBJEXT): {$(VPATH)}load.c {$(VPATH)}eval_intern.h \
   {$(VPATH)}util.h $(RUBY_H_INCLUDES) $(VM_CORE_H_INCLUDES) \
@@ -672,7 +679,7 @@ $(srcdir)/revision.h: $(srcdir)/version.h $(srcdir)/ChangeLog $(srcdir)/tool/fil
 	@$(IFCHANGE) "$@" "$@.tmp"
 
 $(srcdir)/ext/ripper/ripper.c:
-	cd $(srcdir)/ext/ripper && exec $(MAKE) -f depend $(MFLAGS) top_srcdir=../.. srcdir=.
+	cd $(srcdir)/ext/ripper && $(exec) $(MAKE) -f depend $(MFLAGS) top_srcdir=../.. srcdir=.
 
 ##
 

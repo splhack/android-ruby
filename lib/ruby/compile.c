@@ -295,6 +295,7 @@ PRINTF_ARGS(void ruby_debug_printf(const char*, ...), 1, 2);
 #define INIT_ANCHOR(name) \
   (name##_body__.last = &name##_body__.anchor, name = &name##_body__)
 
+#define hide_obj(obj) do {OBJ_FREEZE(obj); RBASIC(obj)->klass = 0;} while (0)
 
 #include "optinsn.inc"
 #if OPT_INSTRUCTIONS_UNIFICATION
@@ -1215,6 +1216,38 @@ iseq_set_local_table(rb_iseq_t *iseq, ID *tbl)
     return COMPILE_OK;
 }
 
+static int
+cdhash_cmp(VALUE val, VALUE lit)
+{
+    if (val == lit) return 0;
+    if (SPECIAL_CONST_P(lit)) {
+	return val != lit;
+    }
+    if (SPECIAL_CONST_P(val) || BUILTIN_TYPE(val) != BUILTIN_TYPE(lit)) {
+	return -1;
+    }
+    if (BUILTIN_TYPE(lit) == T_STRING) {
+	return rb_str_hash_cmp(lit, val);
+    }
+    return !rb_eql(lit, val);
+}
+
+static int
+cdhash_hash(VALUE a)
+{
+    if (SPECIAL_CONST_P(a)) return (int)a;
+    if (TYPE(a) == T_STRING) return rb_str_hash(a);
+    {
+	VALUE hval = rb_hash(a);
+	return (int)FIX2LONG(hval);
+    }
+}
+
+static const struct st_hash_type cdhash_type = {
+    cdhash_cmp,
+    cdhash_hash,
+};
+
 /**
   ruby insn object array -> raw instruction sequence
  */
@@ -1342,6 +1375,7 @@ iseq_set_sequence(rb_iseq_t *iseq, LINK_ANCHOR *anchor)
 			    int i;
 			    VALUE lits = operands[j];
 			    VALUE map = rb_hash_new();
+			    RHASH_TBL(map)->type = &cdhash_type;
 
 			    for (i=0; i < RARRAY_LEN(lits); i+=2) {
 				VALUE obj = rb_ary_entry(lits, i);
@@ -1977,7 +2011,7 @@ insn_set_sc_state(rb_iseq_t *iseq, INSN *iobj, int state)
 		dump_disasm_list((LINK_ELEMENT *)iobj);
 		dump_disasm_list((LINK_ELEMENT *)lobj);
 		printf("\n-- %d, %d\n", lobj->sc_state, nstate);
-		rb_compile_error(RSTRING_PTR(iseq->filename), iobj->lineno,
+		rb_compile_error(RSTRING_PTR(iseq->filename), iobj->line_no,
 				 "insn_set_sc_state error\n");
 		return 0;
 	    }
@@ -2230,7 +2264,7 @@ compile_array_(rb_iseq_t *iseq, LINK_ANCHOR *ret, NODE* node_root,
 
     if (opt_p == Qtrue) {
 	if (!poped) {
-	    VALUE ary = rb_ary_new();
+	    VALUE ary = rb_ary_tmp_new(len);
 	    node = node_root;
 	    while (node) {
 		rb_ary_push(ary, node->nd_head->nd_lit);
@@ -2709,6 +2743,7 @@ defined_expr(rb_iseq_t *iseq, LINK_ANCHOR *ret,
     if (estr != 0) {
 	if (needstr != Qfalse) {
 	    VALUE str = rb_str_new2(estr);
+	    hide_obj(str);
 	    ADD_INSN1(ret, nd_line(node), putstring, str);
 	    iseq_add_mark_object_compile_time(iseq, str);
 	}
@@ -2746,6 +2781,17 @@ make_name_for_block(rb_iseq_t *iseq)
 }
 
 static void
+push_ensure_entry(rb_iseq_t *iseq,
+		  struct iseq_compile_data_ensure_node_stack *enl,
+		  struct ensure_range *er, NODE *node)
+{
+    enl->ensure_node = node;
+    enl->prev = iseq->compile_data->ensure_node_stack;	/* prev */
+    enl->erange = er;
+    iseq->compile_data->ensure_node_stack = enl;
+}
+
+static void
 add_ensure_range(rb_iseq_t *iseq, struct ensure_range *erange,
 		 LABEL *lstart, LABEL *lend)
 {
@@ -2764,7 +2810,7 @@ add_ensure_range(rb_iseq_t *iseq, struct ensure_range *erange,
 }
 
 static void
-add_ensure_iseq(LINK_ANCHOR *ret, rb_iseq_t *iseq)
+add_ensure_iseq(LINK_ANCHOR *ret, rb_iseq_t *iseq, int is_return)
 {
     struct iseq_compile_data_ensure_node_stack *enlp =
 	iseq->compile_data->ensure_node_stack;
@@ -2773,19 +2819,25 @@ add_ensure_iseq(LINK_ANCHOR *ret, rb_iseq_t *iseq)
 
     INIT_ANCHOR(ensure);
     while (enlp) {
-	DECL_ANCHOR(ensure_part);
-	LABEL *lstart = NEW_LABEL(0);
-	LABEL *lend = NEW_LABEL(0);
+	if (enlp->erange != 0) {
+	    DECL_ANCHOR(ensure_part);
+	    LABEL *lstart = NEW_LABEL(0);
+	    LABEL *lend = NEW_LABEL(0);
+	    INIT_ANCHOR(ensure_part);
 
-	INIT_ANCHOR(ensure_part);
-	add_ensure_range(iseq, enlp->erange, lstart, lend);
+	    add_ensure_range(iseq, enlp->erange, lstart, lend);
 
-	iseq->compile_data->ensure_node_stack = enlp->prev;
-	ADD_LABEL(ensure_part, lstart);
-	COMPILE_POPED(ensure_part, "ensure part", enlp->ensure_node);
-	ADD_LABEL(ensure_part, lend);
-
-	ADD_SEQ(ensure, ensure_part);
+	    iseq->compile_data->ensure_node_stack = enlp->prev;
+	    ADD_LABEL(ensure_part, lstart);
+	    COMPILE_POPED(ensure_part, "ensure part", enlp->ensure_node);
+	    ADD_LABEL(ensure_part, lend);
+	    ADD_SEQ(ensure, ensure_part);
+	}
+	else {
+	    if (!is_return) {
+		break;
+	    }
+	}
 	enlp = enlp->prev;
     }
     iseq->compile_data->ensure_node_stack = prev_enlp;
@@ -3119,8 +3171,7 @@ iseq_compile_each(rb_iseq_t *iseq, LINK_ANCHOR *ret, NODE * node, int poped)
 	LABEL *prev_redo_label = iseq->compile_data->redo_label;
 	VALUE prev_loopval_popped = iseq->compile_data->loopval_popped;
 
-	struct iseq_compile_data_ensure_node_stack *enlp =
-	    iseq->compile_data->ensure_node_stack;
+	struct iseq_compile_data_ensure_node_stack enl;
 
 	LABEL *next_label = iseq->compile_data->start_label = NEW_LABEL(nd_line(node));	/* next  */
 	LABEL *redo_label = iseq->compile_data->redo_label = NEW_LABEL(nd_line(node));	/* redo  */
@@ -3131,7 +3182,7 @@ iseq_compile_each(rb_iseq_t *iseq, LINK_ANCHOR *ret, NODE * node, int poped)
 	LABEL *tmp_label = NULL;
 
 	iseq->compile_data->loopval_popped = 0;
-	iseq->compile_data->ensure_node_stack = 0;
+	push_ensure_entry(iseq, &enl, 0, 0);
 
 	if (type == NODE_OPT_N || node->nd_state == 1) {
 	    ADD_INSNL(ret, nd_line(node), jump, next_label);
@@ -3193,7 +3244,7 @@ iseq_compile_each(rb_iseq_t *iseq, LINK_ANCHOR *ret, NODE * node, int poped)
 	iseq->compile_data->end_label = prev_end_label;
 	iseq->compile_data->redo_label = prev_redo_label;
 	iseq->compile_data->loopval_popped = prev_loopval_popped;
-	iseq->compile_data->ensure_node_stack = enlp;
+	iseq->compile_data->ensure_node_stack = iseq->compile_data->ensure_node_stack->prev;
 	break;
       }
       case NODE_ITER:
@@ -3242,7 +3293,7 @@ iseq_compile_each(rb_iseq_t *iseq, LINK_ANCHOR *ret, NODE * node, int poped)
 	    ADD_LABEL(ret, splabel);
 	    ADD_ADJUST(ret, nd_line(node), iseq->compile_data->redo_label);
 	    COMPILE_(ret, "break val (while/until)", node->nd_stts, iseq->compile_data->loopval_popped);
-	    add_ensure_iseq(ret, iseq);
+	    add_ensure_iseq(ret, iseq, 0);
 	    ADD_INSNL(ret, nd_line(node), jump, iseq->compile_data->end_label);
 	    ADD_ADJUST_RESTORE(ret, splabel);
 
@@ -3302,7 +3353,7 @@ iseq_compile_each(rb_iseq_t *iseq, LINK_ANCHOR *ret, NODE * node, int poped)
 	    debugs("next in while loop\n");
 	    ADD_LABEL(ret, splabel);
 	    COMPILE(ret, "next val/valid syntax?", node->nd_stts);
-	    add_ensure_iseq(ret, iseq);
+	    add_ensure_iseq(ret, iseq, 0);
 	    ADD_ADJUST(ret, nd_line(node), iseq->compile_data->redo_label);
 	    ADD_INSNL(ret, nd_line(node), jump, iseq->compile_data->start_label);
 	    ADD_ADJUST_RESTORE(ret, splabel);
@@ -3313,7 +3364,7 @@ iseq_compile_each(rb_iseq_t *iseq, LINK_ANCHOR *ret, NODE * node, int poped)
 	    ADD_LABEL(ret, splabel);
 	    ADD_ADJUST(ret, nd_line(node), iseq->compile_data->start_label);
 	    COMPILE(ret, "next val", node->nd_stts);
-	    add_ensure_iseq(ret, iseq);
+	    add_ensure_iseq(ret, iseq, 0);
 	    ADD_INSNL(ret, nd_line(node), jump, iseq->compile_data->end_label);
 	    ADD_ADJUST_RESTORE(ret, splabel);
 
@@ -3368,7 +3419,7 @@ iseq_compile_each(rb_iseq_t *iseq, LINK_ANCHOR *ret, NODE * node, int poped)
 	    debugs("redo in while");
 	    ADD_LABEL(ret, splabel);
 	    ADD_ADJUST(ret, nd_line(node), iseq->compile_data->redo_label);
-	    add_ensure_iseq(ret, iseq);
+	    add_ensure_iseq(ret, iseq, 0);
 	    ADD_INSNL(ret, nd_line(node), jump, iseq->compile_data->redo_label);
 	    ADD_ADJUST_RESTORE(ret, splabel);
 	}
@@ -3381,7 +3432,7 @@ iseq_compile_each(rb_iseq_t *iseq, LINK_ANCHOR *ret, NODE * node, int poped)
 
 	    debugs("redo in block");
 	    ADD_LABEL(ret, splabel);
-	    add_ensure_iseq(ret, iseq);
+	    add_ensure_iseq(ret, iseq, 0);
 	    ADD_ADJUST(ret, nd_line(node), iseq->compile_data->start_label);
 	    ADD_INSNL(ret, nd_line(node), jump, iseq->compile_data->start_label);
 	    ADD_ADJUST_RESTORE(ret, splabel);
@@ -3538,19 +3589,17 @@ iseq_compile_each(rb_iseq_t *iseq, LINK_ANCHOR *ret, NODE * node, int poped)
 	LABEL *lstart = NEW_LABEL(nd_line(node));
 	LABEL *lend = NEW_LABEL(nd_line(node));
 	LABEL *lcont = NEW_LABEL(nd_line(node));
-	struct ensure_range er = { 0 };
+	struct ensure_range er;
 	struct iseq_compile_data_ensure_node_stack enl;
 	struct ensure_range *erange;
 
 	INIT_ANCHOR(ensr);
-	er.begin = lstart;
-	er.end = lend;
-	enl.ensure_node = node->nd_ensr;
-	enl.prev = iseq->compile_data->ensure_node_stack;	/* prev */
-	enl.erange = &er;
 	COMPILE_POPED(ensr, "ensure ensr", node->nd_ensr);
 
-	iseq->compile_data->ensure_node_stack = &enl;
+	er.begin = lstart;
+	er.end = lend;
+	er.next = 0;
+	push_ensure_entry(iseq, &enl, &er, node->nd_ensr);
 
 	ADD_LABEL(ret, lstart);
 	COMPILE_(ret, "ensure head", node->nd_head, poped);
@@ -3569,6 +3618,7 @@ iseq_compile_each(rb_iseq_t *iseq, LINK_ANCHOR *ret, NODE * node, int poped)
 			    ensure, lcont);
 	    erange = erange->next;
 	}
+
 	iseq->compile_data->ensure_node_stack = enl.prev;
 	break;
       }
@@ -4167,7 +4217,7 @@ iseq_compile_each(rb_iseq_t *iseq, LINK_ANCHOR *ret, NODE * node, int poped)
 		COMPILE(ret, "return nd_stts (return val)", node->nd_stts);
 
 		if (is->type == ISEQ_TYPE_METHOD) {
-		    add_ensure_iseq(ret, iseq);
+		    add_ensure_iseq(ret, iseq, 1);
 		    ADD_INSN(ret, nd_line(node), leave);
 		    ADD_ADJUST_RESTORE(ret, splabel);
 
@@ -4353,6 +4403,7 @@ iseq_compile_each(rb_iseq_t *iseq, LINK_ANCHOR *ret, NODE * node, int poped)
       case NODE_STR:{
 	debugp_param("nd_lit", node->nd_lit);
 	if (!poped) {
+	    hide_obj(node->nd_lit);
 	    ADD_INSN1(ret, nd_line(node), putstring, node->nd_lit);
 	}
 	break;

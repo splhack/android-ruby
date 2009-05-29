@@ -1,5 +1,5 @@
 /*
- * $Id: ossl_x509ext.c 18944 2008-08-30 06:54:25Z matz $
+ * $Id: ossl_x509ext.c 23214 2009-04-19 13:32:51Z yugui $
  * 'OpenSSL for Ruby' project
  * Copyright (C) 2001-2002  Michal Rokos <m.rokos@sh.cvut.cz>
  * All rights reserved.
@@ -325,15 +325,15 @@ ossl_x509ext_set_value(VALUE self, VALUE data)
 	ossl_raise(eX509ExtError, "malloc error");
     memcpy(s, RSTRING_PTR(data), RSTRING_LEN(data));
     if(!(asn1s = ASN1_OCTET_STRING_new())){
-	free(s);
+	OPENSSL_free(s);
 	ossl_raise(eX509ExtError, NULL);
     }
     if(!M_ASN1_OCTET_STRING_set(asn1s, s, RSTRING_LEN(data))){
-	free(s);
+	OPENSSL_free(s);
 	ASN1_OCTET_STRING_free(asn1s);
 	ossl_raise(eX509ExtError, NULL);
     }
-    free(s);
+    OPENSSL_free(s);
     GetX509Ext(self, ext);
     X509_EXTENSION_set_data(ext, asn1s);
 

@@ -546,7 +546,7 @@ INSN_ENTRY(putstring){
   USAGE_ANALYSIS_OPERAND(BIN(putstring), 0, str);
 {
 #line 376 "insns.def"
-    val = rb_str_new3(str);
+    val = rb_str_replace(rb_str_new(0, 0), str);
 
 #line 552 "vm.inc"
   PUSH(val);
@@ -688,7 +688,7 @@ INSN_ENTRY(duparray){
   USAGE_ANALYSIS_OPERAND(BIN(duparray), 0, ary);
 {
 #line 463 "insns.def"
-    val = rb_ary_dup(ary);
+    val = rb_ary_replace(rb_ary_new2(0), ary);
 
 #line 694 "vm.inc"
   PUSH(val);
