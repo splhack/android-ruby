@@ -12,6 +12,7 @@ and, native ruby command
       dynamically linked (uses shared libs), stripped
 
 ## Screenshot
+![](https://raw.githubusercontent.com/splhack/android-ruby/gh-pages/androidruby_s.png)
 
 ## How to build
 Follow http://source.android.com/download
@@ -30,3 +31,4 @@ generated files
     $TOP/out/target/product/generic/system/bin/cruby    native command
 
 ## Layer
+![](https://raw.githubusercontent.com/splhack/android-ruby/gh-pages/blocks.png)
